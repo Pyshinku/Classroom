@@ -598,10 +598,22 @@ function initAnnouncementBox(course) {
     const btnFile = document.getElementById('btn-attach-file');
     if (btnFile && inputFile) {
         btnFile.onclick = () => inputFile.click();
-        inputFile.onchange = (e) => {
+        inputFile.onchange = async (e) => {
             const file = e.target.files && e.target.files[0];
             if (file) {
-                pendingAnnouncementAttachments.push({ type: 'file', label: file.name, name: file.name, url: '#' });
+                let fileUrl = '#';
+                if (typeof readFileAsAttachment === 'function') {
+                    const att = await readFileAsAttachment(file);
+                    fileUrl = att.url;
+                } else {
+                    fileUrl = await new Promise(resolve => {
+                        const reader = new FileReader();
+                        reader.onload = ev => resolve(ev.target.result || '#');
+                        reader.onerror = () => resolve('#');
+                        reader.readAsDataURL(file);
+                    });
+                }
+                pendingAnnouncementAttachments.push({ type: 'file', label: file.name, name: file.name, url: fileUrl });
                 renderAnnAttachments();
                 inputFile.value = '';
             }
@@ -612,8 +624,8 @@ function initAnnouncementBox(course) {
     if (btnPublish) {
         btnPublish.onclick = async () => {
             const text = bodyInput ? bodyInput.value.trim() : '';
-            if (!text) {
-                triggerToast('Введите текст записи', true);
+            if (!text && pendingAnnouncementAttachments.length === 0) {
+                triggerToast('Введите текст записи или прикрепите файл', true);
                 return;
             }
 
@@ -657,7 +669,7 @@ function initAnnouncementBox(course) {
 }
 
 function renderStreamTab(course) {
-    const list = document.getElementById('stream-posts-list');
+    const list = document.getElementById('stream-feed-list') || document.getElementById('stream-posts-list');
     if (!list) return;
 
     const anns = (appState.announcements || []).filter(a => a.courseId === course.id);
@@ -673,12 +685,16 @@ function renderStreamTab(course) {
     }
 
     list.innerHTML = anns.map(a => {
-        const attsHtml = (a.attachments || []).map(att => `
-            <a href="${att.url}" target="_blank" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs text-google-blue dark:text-google-blueDarkTheme hover:underline border border-google-border dark:border-google-darkBorder">
+        const attsHtml = (a.attachments || []).map(att => {
+            const isDataUrl = att.url && att.url.startsWith('data:');
+            const safeName = (att.label || att.name || 'Материал').replace(/'/g, "\\'");
+            return `
+            <div onclick="openAttachmentResource('${att.url}', '${safeName}')" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs text-google-blue dark:text-google-blueDarkTheme hover:underline border border-google-border dark:border-google-darkBorder cursor-pointer transition">
                 <i class="fa-solid ${att.type === 'video' ? 'fa-video text-red-500' : (att.type === 'file' ? 'fa-paperclip text-google-blue' : 'fa-link text-emerald-500')}"></i>
                 <span class="truncate max-w-[200px]">${att.label || att.name || 'Материал'}</span>
-            </a>
-        `).join('');
+            </div>
+            `;
+        }).join('');
 
         const commentsHtml = (a.comments || []).map(c => {
             const cAuthor = (appState.accounts || []).find(acc => acc.name === c.authorName) || {};
