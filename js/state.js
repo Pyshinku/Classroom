@@ -90,6 +90,7 @@ let appState = (() => {
 
 let isOnline = false;
 let isSyncing = false;
+window.isInitialCoursesLoading = true;
 let pendingPostAttachments = [];
 let pendingStudentAttachments = [];
 let selectedSettingsBannerImg = '';
@@ -282,6 +283,12 @@ async function syncWithServer(showFeedback = false) {
         if (showFeedback && typeof triggerToast === 'function') triggerToast('Сервер недоступен. Запустите start_server.bat', true);
     } finally {
         isSyncing = false;
+        if (window.isInitialCoursesLoading) {
+            window.isInitialCoursesLoading = false;
+            if (typeof renderDashboard === 'function') {
+                renderDashboard();
+            }
+        }
     }
 }
 

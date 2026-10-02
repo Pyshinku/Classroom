@@ -120,6 +120,45 @@ function renderDashboard() {
     const badgeEl = document.getElementById('dashboard-courses-badge');
     if (!container) return;
 
+    // 1. ANIMATED SKELETON LOADING (While initial sync from backend is in progress and local courses are empty)
+    if (window.isInitialCoursesLoading && (!allCourses || allCourses.length === 0)) {
+        if (badgeEl) badgeEl.textContent = '...';
+        container.innerHTML = Array(4).fill(0).map(() => `
+            <div class="animate-pulse bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between select-none">
+                <div>
+                    <!-- Banner Skeleton -->
+                    <div class="h-32 bg-gray-200 dark:bg-gray-800 p-5 flex flex-col justify-between">
+                        <div class="flex items-start justify-between">
+                            <div class="w-16 h-5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                            <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="w-3/4 h-5 rounded-md bg-gray-300 dark:bg-gray-700"></div>
+                            <div class="w-1/2 h-3.5 rounded-md bg-gray-300 dark:bg-gray-700"></div>
+                        </div>
+                    </div>
+                    <!-- Body Skeleton -->
+                    <div class="p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="w-24 h-3.5 rounded bg-gray-200 dark:bg-gray-800"></div>
+                            <div class="w-20 h-3.5 rounded bg-gray-200 dark:bg-gray-800"></div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="w-20 h-3.5 rounded bg-gray-200 dark:bg-gray-800"></div>
+                            <div class="w-12 h-3.5 rounded bg-gray-200 dark:bg-gray-800"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Footer Skeleton -->
+                <div class="px-5 py-3.5 bg-gray-50 dark:bg-gray-800/60 border-t border-google-border dark:border-google-darkBorder flex items-center justify-between">
+                    <div class="w-14 h-5 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="w-16 h-5 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+            </div>
+        `).join('');
+        return;
+    }
+
     if (badgeEl) badgeEl.textContent = allCourses.length;
 
     if (allCourses.length === 0) {
