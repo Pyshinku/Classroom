@@ -888,19 +888,40 @@
                 </div>
             </section>
 
-            <!-- VIEW 5: SCHEDULE / CALENDAR -->
-            <section id="view-calendar" class="hidden p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
-                <div class="border-b border-google-border dark:border-google-darkBorder pb-4 flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Календарь дедлайнов</h1>
-                        <p class="text-xs text-google-gray dark:text-gray-400 mt-1">График сдачи лабораторных и практических работ</p>
+            <!-- VIEW 5: SCHEDULE / CALENDAR (GOOGLE CLASSROOM STYLE) -->
+            <section id="view-calendar" class="hidden p-3 sm:p-6 max-w-7xl mx-auto space-y-4">
+                <!-- Top Toolbar: Course selector + Week Navigator -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-google-darkSurface p-4 rounded-2xl border border-google-border dark:border-google-darkBorder shadow-sm">
+                    <!-- Left: Course Filter Dropdown -->
+                    <div class="flex items-center space-x-3">
+                        <select id="calendar-course-filter" onchange="renderCalendarView()" class="px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-google-border dark:border-google-darkBorder text-gray-800 dark:text-gray-100 rounded-xl text-xs sm:text-sm font-medium focus:ring-2 focus:ring-google-blue focus:outline-none transition cursor-pointer min-w-[200px]">
+                            <option value="all">Все курсы</option>
+                        </select>
+                        <button type="button" onclick="setCalendarToToday()" class="px-3 py-1.5 border border-google-border dark:border-google-darkBorder hover:bg-gray-100 dark:hover:bg-gray-700 text-google-blue dark:text-google-blueDarkTheme text-xs font-semibold rounded-xl transition shadow-sm">
+                            Сегодня
+                        </button>
                     </div>
-                    <div class="text-xs font-mono bg-white dark:bg-google-darkSurface px-3 py-1.5 rounded-xl border border-google-border dark:border-google-darkBorder shadow-sm">
-                        2026-2027 учебный год
+
+                    <!-- Right: Week Nav controls (< range >) -->
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="navigateCalendarWeek(-1)" class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-google-gray dark:text-gray-300 transition" title="Предыдущая неделя">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <span id="calendar-week-range-label" class="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-200 px-2 min-w-[170px] text-center select-none">
+                            --
+                        </span>
+                        <button type="button" onclick="navigateCalendarWeek(1)" class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center text-google-gray dark:text-gray-300 transition" title="Следующая неделя">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div id="calendar-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <!-- 7-Day Week Grid (Monday to Sunday) -->
+                <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-2xl shadow-sm overflow-x-auto">
+                    <div class="min-w-[800px] grid grid-cols-7 divide-x divide-google-border dark:divide-google-darkBorder" id="calendar-week-grid-container">
+                        <!-- 7 Column Days populated dynamically by JS -->
+                    </div>
+                </div>
             </section>
 
             <!-- VIEW 6: FULL-PAGE PROFILE SETTINGS -->
@@ -2063,11 +2084,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.29"></script>
-    <script src="js/notifications.js?v=2.0.29"></script>
-    <script src="js/auth.js?v=2.0.29"></script>
-    <script src="js/courses.js?v=2.0.29"></script>
-    <script src="js/assignments.js?v=2.0.29"></script>
-    <script src="js/app.js?v=2.0.29"></script>
+    <script src="js/state.js?v=2.0.30"></script>
+    <script src="js/notifications.js?v=2.0.30"></script>
+    <script src="js/auth.js?v=2.0.30"></script>
+    <script src="js/courses.js?v=2.0.30"></script>
+    <script src="js/assignments.js?v=2.0.30"></script>
+    <script src="js/app.js?v=2.0.30"></script>
 </body>
 </html>

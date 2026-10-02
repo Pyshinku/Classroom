@@ -1737,33 +1737,158 @@ function renderTodoView() {
     }
 }
 
-function renderCalendarView() {
-    const container = document.getElementById('calendar-cards-container');
-    if (!container) return;
-    container.innerHTML = '';
+// ----------------- OFFICIAL GOOGLE CLASSROOM CALENDAR ENGINE (STAGE 4) -----------------
 
-    const userAssigns = appState.assignments || [];
-    if (userAssigns.length === 0) {
-        container.innerHTML = '<p class="text-xs text-google-gray col-span-full py-8 text-center bg-white dark:bg-google-darkSurface rounded-3xl border border-google-border dark:border-google-darkBorder p-6">Событий в календаре нет</p>';
-        return;
+let calendarCurrentMonday = null;
+
+function getMondayOfDate(d) {
+    const date = new Date(d);
+    const day = date.getDay(); // 0 is Sunday, 1 is Monday
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(date.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+}
+
+window.setCalendarToToday = function() {
+    calendarCurrentMonday = getMondayOfDate(new Date());
+    renderCalendarView();
+};
+
+window.navigateCalendarWeek = function(direction) {
+    if (!calendarCurrentMonday) {
+        calendarCurrentMonday = getMondayOfDate(new Date());
+    }
+    calendarCurrentMonday.setDate(calendarCurrentMonday.getDate() + (direction * 7));
+    renderCalendarView();
+};
+
+function getCalendarCourseColor(course) {
+    const grad = course ? (course.gradient || '') : '';
+    if (grad.includes('emerald') || grad.includes('green') || grad.includes('teal')) {
+        return 'bg-emerald-600 dark:bg-emerald-700 text-white';
+    }
+    if (grad.includes('purple') || grad.includes('violet') || grad.includes('pink') || grad.includes('fuchsia') || grad.includes('rose')) {
+        return 'bg-pink-600 dark:bg-pink-700 text-white';
+    }
+    if (grad.includes('amber') || grad.includes('orange') || grad.includes('yellow')) {
+        return 'bg-amber-600 dark:bg-amber-700 text-white';
+    }
+    if (grad.includes('cyan') || grad.includes('sky')) {
+        return 'bg-cyan-600 dark:bg-cyan-700 text-white';
+    }
+    if (grad.includes('gray') || grad.includes('slate') || grad.includes('zinc')) {
+        return 'bg-slate-700 dark:bg-slate-800 text-white';
+    }
+    return 'bg-google-blue dark:bg-blue-600 text-white';
+}
+
+function renderCalendarView() {
+    const gridContainer = document.getElementById('calendar-week-grid-container');
+    const rangeLabel = document.getElementById('calendar-week-range-label');
+    const courseFilter = document.getElementById('calendar-course-filter');
+    if (!gridContainer) return;
+
+    if (!calendarCurrentMonday) {
+        calendarCurrentMonday = getMondayOfDate(new Date());
     }
 
-    userAssigns.forEach(a => {
-        const course = (appState.courses || []).find(c => c.id === a.courseId);
-        const card = document.createElement('div');
-        card.className = 'bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-5 shadow-sm space-y-3 hover:shadow-md transition cursor-pointer';
-        card.onclick = () => window.navigateTo('assignment', a.courseId, a.id);
+    const user = getCurrentUser();
+    const isGuest = isGuestUser();
 
-        card.innerHTML = `
-            <div class="flex items-center space-x-2 text-google-blue dark:text-google-blueDarkTheme">
-                <i class="fa-solid fa-calendar-day"></i>
-                <span class="text-xs font-bold font-mono">${a.deadline || 'Текущая неделя'}</span>
-            </div>
-            <div>
-                <h4 class="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-snug">${a.title}</h4>
-                <p class="text-xs text-google-gray mt-1 truncate">${course ? course.name : ''}</p>
+    // 1. Populate course dropdown if not yet populated or courses changed
+    if (courseFilter) {
+        const userCourses = (appState.courses || []).filter(c => !c.isArchived && ((c.studentIds || []).includes(user.id) || isCourseTeacher(c, user)));
+        const currentVal = courseFilter.value || 'all';
+        courseFilter.innerHTML = '<option value="all">Все курсы</option>' + userCourses.map(c => `
+            <option value="${c.id}" ${currentVal === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>
+        `).join('');
+    }
+
+    const selectedCourseId = courseFilter ? courseFilter.value : 'all';
+
+    // 2. Generate 7 days for the current week
+    const days = [];
+    const dayNames = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+    const monthNamesShort = ['янв.', 'февр.', 'мар.', 'апр.', 'мая', 'июн.', 'июл.', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.'];
+
+    const today = new Date();
+    const todayY = today.getFullYear();
+    const todayM = today.getMonth();
+    const todayD = today.getDate();
+
+    for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(calendarCurrentMonday);
+        dayDate.setDate(calendarCurrentMonday.getDate() + i);
+        dayDate.setHours(0, 0, 0, 0);
+
+        const isToday = dayDate.getFullYear() === todayY && dayDate.getMonth() === todayM && dayDate.getDate() === todayD;
+        days.push({
+            date: dayDate,
+            dayName: dayNames[i],
+            dayNum: dayDate.getDate(),
+            monthNum: dayDate.getMonth(),
+            year: dayDate.getFullYear(),
+            isToday
+        });
+    }
+
+    // 3. Update Range Label (e.g. "сент. 28 – окт. 4, 2026")
+    if (rangeLabel) {
+        const startDay = days[0];
+        const endDay = days[6];
+        if (startDay.monthNum === endDay.monthNum) {
+            rangeLabel.textContent = `${monthNamesShort[startDay.monthNum]} ${startDay.dayNum} – ${endDay.dayNum}, ${endDay.year}`;
+        } else {
+            rangeLabel.textContent = `${monthNamesShort[startDay.monthNum]} ${startDay.dayNum} – ${monthNamesShort[endDay.monthNum]} ${endDay.dayNum}, ${endDay.year}`;
+        }
+    }
+
+    // 4. Collect relevant assignments
+    let assigns = (appState.assignments || []).filter(a => {
+        if (!a || !a.deadline) return false;
+        if (selectedCourseId !== 'all' && a.courseId !== selectedCourseId) return false;
+        return true;
+    });
+
+    // 5. Render 7 day columns matching Google Classroom layout
+    gridContainer.innerHTML = days.map(day => {
+        // Find assignments whose deadline falls on this specific calendar day
+        const dayAssigns = assigns.filter(a => {
+            const parsed = parseDeadlineTime(a.deadline);
+            if (!parsed) return false;
+            return parsed.getFullYear() === day.year && parsed.getMonth() === day.monthNum && parsed.getDate() === day.dayNum;
+        });
+
+        const dayHeaderNum = day.isToday
+            ? `<div class="w-8 h-8 rounded-full bg-google-blue text-white flex items-center justify-center font-bold text-sm shadow-md">${day.dayNum}</div>`
+            : `<div class="text-xl sm:text-2xl font-normal text-gray-800 dark:text-gray-100">${day.dayNum}</div>`;
+
+        const cardsHtml = dayAssigns.map(a => {
+            const course = (appState.courses || []).find(c => c.id === a.courseId);
+            const colorClass = getCalendarCourseColor(course);
+            return `
+                <div onclick="window.navigateTo('assignment', '${a.courseId}', '${a.id}')" class="${colorClass} p-2.5 rounded-xl cursor-pointer shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all space-y-1 select-none">
+                    <div class="text-[11px] font-semibold leading-tight line-clamp-3">
+                        Задание: ${escapeHtml(a.title)}
+                    </div>
+                    ${course ? `<div class="text-[10px] opacity-85 truncate font-normal">${escapeHtml(course.name)}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="flex flex-col min-h-[460px] sm:min-h-[520px] bg-white dark:bg-google-darkSurface transition-colors ${day.isToday ? 'bg-blue-50/20 dark:bg-blue-950/10' : ''}">
+                <!-- Column Header: Day of week + Day of month -->
+                <div class="py-3 px-2 flex flex-col items-center justify-center border-b border-google-border dark:border-google-darkBorder select-none">
+                    <span class="text-xs uppercase font-medium text-google-gray dark:text-gray-400 mb-1">${day.dayName}</span>
+                    ${dayHeaderNum}
+                </div>
+                <!-- Column Body: Assignment Cards -->
+                <div class="p-2 space-y-2 flex-1 flex flex-col">
+                    ${cardsHtml}
+                </div>
             </div>
         `;
-        container.appendChild(card);
-    });
+    }).join('');
 }
