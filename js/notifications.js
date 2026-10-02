@@ -204,6 +204,10 @@ function renderSettingsView() {
     setCb('setting-notify-teacher-late', settings.teacherLate);
     setCb('setting-notify-teacher-invite', settings.teacherInvite);
 
+    if (typeof syncDevBetaUI === 'function') {
+        syncDevBetaUI();
+    }
+
     // Render course-specific toggles
     const courseListEl = document.getElementById('settings-courses-notifications-list');
     if (courseListEl) {
@@ -246,4 +250,56 @@ window.toggleCourseNotification = function(courseId, val) {
     appState.userSettings.courseSpecific[courseId] = val;
     persistState();
     triggerToast('Настройки курса обновлены');
+};
+
+function getZaporizhzhiaTimeString(timestamp = null) {
+    const d = timestamp ? new Date(timestamp) : new Date();
+    try {
+        return d.toLocaleString('ru-RU', {
+            timeZone: 'Europe/Kyiv',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }) + ' (Запорожье)';
+    } catch (_) {
+        return d.toLocaleString('ru-RU') + ' (Запорожье)';
+    }
+}
+
+window.toggleDevBetaSetting = function(isEnabled) {
+    localStorage.setItem('classroom_dev_beta_enabled', isEnabled ? 'true' : 'false');
+    if (!appState.userSettings) appState.userSettings = Object.assign({}, DEFAULT_STATE.userSettings);
+    appState.userSettings.devBetaEnabled = isEnabled;
+    persistState();
+    syncDevBetaUI();
+    if (isEnabled) {
+        triggerToast('БЕТА Функции для разработчиков активированы!');
+    } else {
+        triggerToast('БЕТА Функции отключены');
+    }
+};
+
+window.isDevBetaEnabled = function() {
+    return localStorage.getItem('classroom_dev_beta_enabled') === 'true' || Boolean(appState.userSettings && appState.userSettings.devBetaEnabled);
+};
+
+window.syncDevBetaUI = function() {
+    const isEnabled = isDevBetaEnabled();
+    const switchEl = document.getElementById('setting-dev-beta');
+    if (switchEl) switchEl.checked = isEnabled;
+
+    const footerEl = document.getElementById('sidebar-dev-footer');
+    if (footerEl) {
+        footerEl.classList.toggle('hidden', !isEnabled);
+        if (isEnabled) {
+            const timeEl = document.getElementById('sidebar-dev-time');
+            if (timeEl) {
+                const ts = appState.lastUpdate || Date.now();
+                timeEl.textContent = getZaporizhzhiaTimeString(ts);
+            }
+        }
+    }
 };

@@ -102,6 +102,7 @@ function renderSidebar() {
 
     if (teachingList) teachingList.innerHTML = teachingCourses.map(renderCourseItem).join('');
     if (enrolledList) enrolledList.innerHTML = enrolledCourses.map(renderCourseItem).join('');
+    if (typeof syncDevBetaUI === 'function') syncDevBetaUI();
 }
 
 function renderDashboard() {

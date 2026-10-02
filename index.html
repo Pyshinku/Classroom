@@ -320,6 +320,23 @@
                     <span class="sidebar-label truncate">Настройки</span>
                 </button>
             </div>
+
+            <!-- Developer Beta Footer (controlled by Dev Settings) -->
+            <div id="sidebar-dev-footer" class="hidden px-4 py-3 border-t border-google-border/70 dark:border-google-darkBorder/70 bg-gray-50/80 dark:bg-google-darkSurface/60 text-xs space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-mono font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                        v2.0.4 Beta
+                    </span>
+                    <span class="inline-flex items-center text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                        Онлайн
+                    </span>
+                </div>
+                <div class="pt-0.5">
+                    <p class="text-[9px] text-google-gray dark:text-gray-400 uppercase font-semibold tracking-wider">Последнее обновление:</p>
+                    <p id="sidebar-dev-time" class="text-[10px] font-mono text-gray-700 dark:text-gray-300 truncate font-medium">--:--:--</p>
+                </div>
+            </div>
         </aside>
 
         <!-- MAIN VIEWPORT CONTAINER -->
@@ -1256,6 +1273,32 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Section 3: Developer Settings (Beta Features) -->
+                <div class="bg-white dark:bg-google-darkCard rounded-3xl p-6 border border-google-border dark:border-google-darkBorder shadow-sm space-y-5">
+                    <div class="border-b border-google-border dark:border-google-darkBorder pb-4">
+                        <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                            <i class="fa-solid fa-code text-purple-600 dark:text-purple-400"></i>
+                            <span>ДЛЯ РАЗРАБОТЧИКОВ</span>
+                        </h2>
+                        <p class="text-xs text-google-gray dark:text-gray-400 mt-0.5">Специальные инструменты отладки, системная диагностика и экспериментальные возможности платформы</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <div class="pr-4">
+                            <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 flex items-center space-x-2">
+                                <span>БЕТА Функции</span>
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-300 uppercase tracking-wider">Beta</span>
+                            </p>
+                            <p class="text-[11px] text-google-gray dark:text-gray-400 mt-0.5">Включение предварительных возможностей сайта: в нижнем колонтитуле сайдбара отображается текущая версия сборки и точное время последнего изменения по Запорожью.</p>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" id="setting-dev-beta" onchange="toggleDevBetaSetting(this.checked)" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                </div>
             </section>
     
         </main>
@@ -1918,11 +1961,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.4"></script>
-    <script src="js/notifications.js?v=2.0.4"></script>
-    <script src="js/auth.js?v=2.0.4"></script>
-    <script src="js/courses.js?v=2.0.4"></script>
-    <script src="js/assignments.js?v=2.0.4"></script>
-    <script src="js/app.js?v=2.0.4"></script>
+    <script src="js/state.js?v=2.0.5"></script>
+    <script src="js/notifications.js?v=2.0.5"></script>
+    <script src="js/auth.js?v=2.0.5"></script>
+    <script src="js/courses.js?v=2.0.5"></script>
+    <script src="js/assignments.js?v=2.0.5"></script>
+    <script src="js/app.js?v=2.0.5"></script>
 </body>
 </html>

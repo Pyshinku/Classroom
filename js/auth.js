@@ -229,6 +229,9 @@ function syncUserInterface() {
             }
         }
     }
+    if (typeof syncDevBetaUI === 'function') {
+        syncDevBetaUI();
+    }
 }
 
 window.switchActiveAccount = function(accId) {
