@@ -140,10 +140,10 @@
                 </div>
             </div>
 
-            <!-- Unauthenticated Register / Login Button -->
-            <button id="btn-header-register" onclick="openAuthModal('login')" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer" title="Войти в Google Classroom">
+            <!-- Official Google Sign-In Direct Button -->
+            <button id="btn-header-register" onclick="triggerGoogleSignIn()" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer" title="Войти через официальный аккаунт Google">
                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
-                <span>Войти</span>
+                <span>Войти через Google</span>
             </button>
 
             <!-- Guest Mode Badge (Item 3) -->
@@ -209,9 +209,9 @@
                             <i class="fa-solid fa-gear text-base w-5 text-center"></i>
                             <span>Настроить профиль</span>
                         </button>
-                        <button id="btn-trigger-add-account" onclick="openAuthModal('register')" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
-                            <i class="fa-solid fa-user-plus text-base w-5 text-center"></i>
-                            <span>Добавить / Сменить аккаунт</span>
+                        <button id="btn-trigger-add-account" onclick="triggerGoogleSignIn()" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
+                            <i class="fa-brands fa-google text-base w-5 text-center text-google-blue"></i>
+                            <span>Войти под другим Google</span>
                         </button>
                         <button id="btn-menu-guest-mode" onclick="enableGuestMode()" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
                             <i class="fa-regular fa-circle-user text-base w-5 text-center"></i>
