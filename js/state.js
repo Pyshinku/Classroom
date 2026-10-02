@@ -207,6 +207,9 @@ async function syncWithServer(showFeedback = false) {
             if (typeof renderAllViews === 'function' && !isUserInteracting) {
                 renderAllViews();
             }
+            if (typeof window !== 'undefined' && typeof window.refreshAssignmentCommentsIfOpen === 'function') {
+                window.refreshAssignmentCommentsIfOpen();
+            }
             if (showFeedback && typeof triggerToast === 'function') triggerToast('База данных синхронизирована!');
         } else {
             updateServerBadge(false);
@@ -243,6 +246,9 @@ async function sendServerAction(endpoint, payload) {
                 const isUserInteracting = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
                 if (typeof renderAllViews === 'function' && !isUserInteracting) {
                     renderAllViews();
+                }
+                if (typeof window !== 'undefined' && typeof window.refreshAssignmentCommentsIfOpen === 'function') {
+                    window.refreshAssignmentCommentsIfOpen();
                 }
             }
             return { success: true, data: result };

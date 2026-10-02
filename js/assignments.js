@@ -837,19 +837,22 @@ function renderAssignmentPublicComments(assign) {
     }
 
     list.innerHTML = comms.map(c => {
-        const avatarHtml = c.photoUrl
-            ? `<img src="${c.photoUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 shadow-xs">`
-            : `<span class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300 font-bold flex items-center justify-center text-[11px] shrink-0">${c.authorAvatar || 'П'}</span>`;
+        const authorAcc = (appState.accounts || []).find(a => a.name === c.authorName);
+        const photo = c.photoUrl || authorAcc?.photoUrl;
+        const avatarLetter = c.authorAvatar || authorAcc?.avatar || (c.authorName ? c.authorName[0] : 'П');
+        const avatarHtml = photo
+            ? `<img src="${photo}" class="w-7 h-7 rounded-full object-cover shrink-0 shadow-xs">`
+            : `<span class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300 font-bold flex items-center justify-center text-[11px] shrink-0">${avatarLetter}</span>`;
 
         return `
         <div class="flex items-start space-x-3 text-xs p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
             ${avatarHtml}
             <div class="flex-1 min-w-0">
                 <div class="flex items-center space-x-2">
-                    <p class="font-bold text-gray-900 dark:text-gray-100 truncate">${c.authorName}</p>
-                    <span class="text-[10px] text-google-gray shrink-0">${c.date || ''}</span>
+                    <p class="font-bold text-gray-900 dark:text-gray-100 truncate">${escapeHtml(c.authorName || 'Пользователь')}</p>
+                    <span class="text-[10px] text-google-gray shrink-0">${escapeHtml(c.date || '')}</span>
                 </div>
-                <p class="text-gray-800 dark:text-gray-200 mt-0.5 leading-relaxed whitespace-pre-line">${c.text}</p>
+                <p class="text-gray-800 dark:text-gray-200 mt-0.5 leading-relaxed whitespace-pre-line">${escapeHtml(c.text || '')}</p>
             </div>
         </div>
         `;
@@ -867,6 +870,12 @@ function initAssignmentPublicComments(course, assign) {
         if (!textVal) return;
 
         const user = getCurrentUser();
+        const dateStr = new Date().toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
         const newComment = {
             id: 'c_' + Date.now(),
             authorId: user.id,
@@ -874,12 +883,7 @@ function initAssignmentPublicComments(course, assign) {
             authorAvatar: user.avatar || user.name[0],
             photoUrl: user.photoUrl || null,
             bg: user.bg || null,
-            date: new Date().toLocaleString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            }),
+            date: dateStr,
             text: textVal
         };
 
@@ -890,10 +894,13 @@ function initAssignmentPublicComments(course, assign) {
         renderAssignmentPublicComments(assign);
         triggerToast('Комментарий курса добавлен');
 
-        await sendServerAction('/api/assignments/comments/add', {
+        await sendServerAction('/api/assignments/comment', {
             assignmentId: assign.id,
             courseId: course.id,
-            comment: newComment
+            authorName: user.name,
+            authorAvatar: user.avatar || user.name[0],
+            text: textVal,
+            date: dateStr
         });
     };
 
@@ -910,24 +917,37 @@ function initAssignmentPublicComments(course, assign) {
     renderAssignmentPublicComments(assign);
 }
 
+function getPrivateCommentsForStudent(assign, studentId) {
+    if (!assign || !assign.privateComments) return [];
+    if (Array.isArray(assign.privateComments)) {
+        return assign.privateComments.filter(c => c.studentId === studentId);
+    }
+    if (typeof assign.privateComments === 'object') {
+        return assign.privateComments[studentId] || [];
+    }
+    return [];
+}
+
 function renderStudentPrivateComments(assign, studentId) {
     const list = document.getElementById('assign-private-comments-list');
     if (!list) return;
 
-    const comms = (assign.privateComments && assign.privateComments[studentId]) || [];
+    const comms = getPrivateCommentsForStudent(assign, studentId);
     if (comms.length === 0) {
         list.innerHTML = '<p class="text-[11px] text-google-gray italic py-1">Личных сообщений пока нет</p>';
         return;
     }
 
-    const myId = getCurrentUser().id;
+    const currentUser = getCurrentUser() || {};
+    const myId = currentUser.id;
     list.innerHTML = comms.map(c => {
-        const isMe = c.authorId === myId;
+        const isMe = (c.authorId && c.authorId === myId) || 
+                     (c.authorName && currentUser.name && (c.authorName === currentUser.name || c.authorName.startsWith(currentUser.name)));
         return `
         <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} text-xs">
             <div class="max-w-[85%] rounded-2xl p-2.5 ${isMe ? 'bg-google-blue text-white rounded-br-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-xs'} shadow-2xs">
-                <p class="text-[10px] font-semibold opacity-80 mb-0.5">${c.authorName} • ${c.date || ''}</p>
-                <p class="leading-relaxed whitespace-pre-line">${c.text}</p>
+                <p class="text-[10px] font-semibold opacity-80 mb-0.5">${escapeHtml(c.authorName || 'Пользователь')} • ${c.date || ''}</p>
+                <p class="leading-relaxed whitespace-pre-line">${escapeHtml(c.text || '')}</p>
             </div>
         </div>
         `;
@@ -946,33 +966,43 @@ function initStudentPrivateComments(course, assign) {
         const textVal = (input.value || '').trim();
         if (!textVal) return;
 
+        const dateStr = new Date().toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
         const newComment = {
             id: 'pc_' + Date.now(),
+            studentId: studentId,
             authorId: user.id,
             authorName: user.name,
             authorAvatar: user.avatar || user.name[0],
             photoUrl: user.photoUrl || null,
-            date: new Date().toLocaleString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            }),
+            date: dateStr,
             text: textVal
         };
 
-        if (!assign.privateComments) assign.privateComments = {};
-        if (!assign.privateComments[studentId]) assign.privateComments[studentId] = [];
-        assign.privateComments[studentId].push(newComment);
+        if (!assign.privateComments) assign.privateComments = [];
+        if (Array.isArray(assign.privateComments)) {
+            assign.privateComments.push(newComment);
+        } else if (typeof assign.privateComments === 'object') {
+            if (!assign.privateComments[studentId]) assign.privateComments[studentId] = [];
+            assign.privateComments[studentId].push(newComment);
+        }
         persistState();
         input.value = '';
         renderStudentPrivateComments(assign, studentId);
         triggerToast('Личное сообщение отправлено преподавателю');
 
-        await sendServerAction('/api/assignments/private-comments/add', {
+        await sendServerAction('/api/assignments/private-comment', {
             assignmentId: assign.id,
             studentId,
-            comment: newComment
+            authorId: user.id,
+            authorName: user.name,
+            authorAvatar: user.avatar || user.name[0],
+            text: textVal,
+            date: dateStr
         });
     };
 
@@ -1017,33 +1047,43 @@ window.openTeacherPrivateChat = function(assignId, studentId, studentName) {
         if (!assign) return;
 
         const user = getCurrentUser();
+        const dateStr = new Date().toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
         const newComment = {
             id: 'pc_' + Date.now(),
+            studentId: currentTeacherChat.studentId,
             authorId: user.id,
             authorName: user.name + ' (Преподаватель)',
             authorAvatar: user.avatar || user.name[0],
             photoUrl: user.photoUrl || null,
-            date: new Date().toLocaleString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            }),
+            date: dateStr,
             text: textVal
         };
 
-        if (!assign.privateComments) assign.privateComments = {};
-        if (!assign.privateComments[currentTeacherChat.studentId]) assign.privateComments[currentTeacherChat.studentId] = [];
-        assign.privateComments[currentTeacherChat.studentId].push(newComment);
+        if (!assign.privateComments) assign.privateComments = [];
+        if (Array.isArray(assign.privateComments)) {
+            assign.privateComments.push(newComment);
+        } else if (typeof assign.privateComments === 'object') {
+            if (!assign.privateComments[currentTeacherChat.studentId]) assign.privateComments[currentTeacherChat.studentId] = [];
+            assign.privateComments[currentTeacherChat.studentId].push(newComment);
+        }
         persistState();
         input.value = '';
         renderTeacherChatMessages();
         triggerToast('Ответ отправлен студенту');
 
-        await sendServerAction('/api/assignments/private-comments/add', {
+        await sendServerAction('/api/assignments/private-comment', {
             assignmentId: assign.id,
             studentId: currentTeacherChat.studentId,
-            comment: newComment
+            authorId: user.id,
+            authorName: user.name + ' (Преподаватель)',
+            authorAvatar: user.avatar || user.name[0],
+            text: textVal,
+            date: dateStr
         });
     };
 
@@ -1066,26 +1106,53 @@ function renderTeacherChatMessages() {
     const assign = (appState.assignments || []).find(a => a.id === currentTeacherChat.assignId);
     if (!assign) return;
 
-    const comms = (assign.privateComments && assign.privateComments[currentTeacherChat.studentId]) || [];
+    const comms = getPrivateCommentsForStudent(assign, currentTeacherChat.studentId);
     if (comms.length === 0) {
         list.innerHTML = '<p class="text-xs text-google-gray italic py-8 text-center">Переписка со студентом пока пуста. Напишите сообщение ниже.</p>';
         return;
     }
 
-    const myId = getCurrentUser().id;
+    const currentUser = getCurrentUser() || {};
+    const myId = currentUser.id;
     list.innerHTML = comms.map(c => {
-        const isMe = c.authorId === myId;
+        const isMe = (c.authorId && c.authorId === myId) || 
+                     (c.authorName && currentUser.name && (c.authorName === currentUser.name || c.authorName.startsWith(currentUser.name)));
         return `
         <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} text-xs">
             <div class="max-w-[85%] rounded-2xl p-2.5 ${isMe ? 'bg-google-blue text-white rounded-br-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-xs'} shadow-2xs">
-                <p class="text-[10px] font-semibold opacity-80 mb-0.5">${c.authorName} • ${c.date || ''}</p>
-                <p class="leading-relaxed whitespace-pre-line">${c.text}</p>
+                <p class="text-[10px] font-semibold opacity-80 mb-0.5">${escapeHtml(c.authorName || 'Преподаватель')} • ${c.date || ''}</p>
+                <p class="leading-relaxed whitespace-pre-line">${escapeHtml(c.text || '')}</p>
             </div>
         </div>
         `;
     }).join('');
     list.scrollTop = list.scrollHeight;
 }
+
+// Function called during background sync to refresh visible comments in real time
+window.refreshAssignmentCommentsIfOpen = function() {
+    if (!appState.currentCourseId || !appState.currentAssignmentId) return;
+    const viewAssign = document.getElementById('view-assignment-detail');
+    if (!viewAssign || viewAssign.classList.contains('hidden')) return;
+
+    const assign = (appState.assignments || []).find(a => a.id === appState.currentAssignmentId);
+    if (!assign) return;
+
+    // Refresh public comments
+    renderAssignmentPublicComments(assign);
+
+    // Refresh student private comments if student
+    const user = getCurrentUser();
+    if (user && user.id) {
+        renderStudentPrivateComments(assign, user.id);
+    }
+
+    // Refresh teacher chat modal if open
+    const teacherModal = document.getElementById('modal-teacher-private-chat');
+    if (teacherModal && !teacherModal.classList.contains('hidden')) {
+        renderTeacherChatMessages();
+    }
+};
 
 // TODO (Tasks) & Calendar Engine
 let currentTodoTab = 'assigned';
