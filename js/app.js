@@ -310,6 +310,8 @@ function toggleSidebar(forceState = null) {
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.replace('justify-start', 'justify-center'));
             const cc = document.getElementById('sidebar-courses-container');
             if (cc) cc.classList.add('hidden');
+            const devFooter = document.getElementById('sidebar-dev-footer');
+            if (devFooter) devFooter.classList.add('hidden');
         } else {
             sidebar.classList.remove('w-20');
             sidebar.classList.add('w-72');
@@ -317,6 +319,10 @@ function toggleSidebar(forceState = null) {
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.replace('justify-center', 'justify-start'));
             const cc = document.getElementById('sidebar-courses-container');
             if (cc) cc.classList.remove('hidden');
+            if (typeof isDevBetaEnabled === 'function' && isDevBetaEnabled()) {
+                const devFooter = document.getElementById('sidebar-dev-footer');
+                if (devFooter) devFooter.classList.remove('hidden');
+            }
         }
     } else {
         // Mobile drawer
@@ -348,6 +354,10 @@ function initSidebarHover() {
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.replace('justify-center', 'justify-start'));
             const cc = document.getElementById('sidebar-courses-container');
             if (cc) cc.classList.remove('hidden');
+            if (typeof isDevBetaEnabled === 'function' && isDevBetaEnabled()) {
+                const devFooter = document.getElementById('sidebar-dev-footer');
+                if (devFooter) devFooter.classList.remove('hidden');
+            }
         }
     });
 
@@ -359,6 +369,8 @@ function initSidebarHover() {
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.replace('justify-start', 'justify-center'));
             const cc = document.getElementById('sidebar-courses-container');
             if (cc) cc.classList.add('hidden');
+            const devFooter = document.getElementById('sidebar-dev-footer');
+            if (devFooter) devFooter.classList.add('hidden');
         }
     });
 }
@@ -366,6 +378,7 @@ function initSidebarHover() {
 // DOMContentLoaded Startup Initialization
 document.addEventListener('DOMContentLoaded', () => {
     updateTheme(appState.darkMode || false);
+    if (typeof syncDevBetaUI === 'function') syncDevBetaUI();
 
     const inputServerUrl = document.getElementById('input-custom-server-url');
     if (inputServerUrl) inputServerUrl.value = getApiBase();

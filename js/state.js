@@ -151,13 +151,13 @@ function updateServerBadge(online, serverInfo = null) {
 
     if (dot && label && badge) {
         if (online) {
-            dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-            badge.className = 'flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800 hover:opacity-90';
+            dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
+            badge.className = 'inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium border transition-colors cursor-pointer bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800 hover:opacity-90 max-w-[130px] truncate';
             const ipText = (serverInfo && serverInfo.localIps && serverInfo.localIps[0]) ? serverInfo.localIps[0] : 'Онлайн';
-            label.textContent = `Общая сеть (${ipText})`;
+            label.textContent = ipText === 'Онлайн' ? 'Онлайн' : `Сеть (${ipText})`;
         } else {
-            dot.className = 'w-2 h-2 rounded-full bg-amber-500';
-            badge.className = 'flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800 hover:opacity-90';
+            dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0';
+            badge.className = 'inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md text-[10px] font-medium border transition-colors cursor-pointer bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-400 dark:border-amber-800 hover:opacity-90 max-w-[130px] truncate';
             label.textContent = 'Локально';
         }
     }
@@ -170,6 +170,10 @@ function updateServerBadge(online, serverInfo = null) {
             modalStatus.textContent = 'Сервер недоступен (работаем локально)';
             modalStatus.className = 'font-semibold text-amber-600 dark:text-amber-400';
         }
+    }
+
+    if (typeof syncDevBetaUI === 'function') {
+        syncDevBetaUI();
     }
 }
 

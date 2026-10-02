@@ -293,12 +293,17 @@ window.syncDevBetaUI = function() {
 
     const footerEl = document.getElementById('sidebar-dev-footer');
     if (footerEl) {
-        footerEl.classList.toggle('hidden', !isEnabled);
+        const isCollapsed = Boolean(appState.sidebarCollapsed && window.innerWidth >= 1024);
+        footerEl.classList.toggle('hidden', !isEnabled || isCollapsed);
         if (isEnabled) {
             const timeEl = document.getElementById('sidebar-dev-time');
             if (timeEl) {
                 const ts = appState.lastUpdate || Date.now();
                 timeEl.textContent = getZaporizhzhiaTimeString(ts);
+            }
+            const versionEl = document.getElementById('sidebar-dev-version');
+            if (versionEl) {
+                versionEl.textContent = 'v2.0.14 Beta';
             }
         }
     }
