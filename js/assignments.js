@@ -199,28 +199,230 @@ async function readFileAsAttachment(file) {
     };
 }
 
-window.openAttachmentResource = function(url, name) {
+window.activeViewerResource = null;
+
+window.closeAttachmentViewer = function() {
+    const modal = document.getElementById('modal-attachment-viewer');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    const viewport = document.getElementById('viewer-content-viewport');
+    if (viewport) {
+        // Pause and clear any playing video/audio
+        const video = viewport.querySelector('video');
+        if (video) video.pause();
+        const iframe = viewport.querySelector('iframe');
+        if (iframe) iframe.src = 'about:blank';
+        viewport.innerHTML = '';
+    }
+    window.activeViewerResource = null;
+};
+
+// Global Esc key listener for modal viewer
+if (typeof window !== 'undefined' && !window._viewerEscInitialized) {
+    window._viewerEscInitialized = true;
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modal-attachment-viewer');
+            if (modal && !modal.classList.contains('hidden')) {
+                window.closeAttachmentViewer();
+            }
+        }
+    });
+}
+
+window.downloadResourceFile = function(url, fileName) {
+    if (!url || url === '#') {
+        triggerToast('Файл недоступен для скачивания', true);
+        return;
+    }
+    fileName = fileName || 'download';
+
+    try {
+        if (url.startsWith('data:')) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            triggerToast(`Файл "${fileName}" скачивается`);
+            return;
+        }
+
+        // Direct or remote URL: try fetching as blob for clean download or trigger link
+        fetch(url, { mode: 'cors' })
+            .then(res => res.blob())
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                triggerToast(`Файл "${fileName}" скачивается`);
+            })
+            .catch(() => {
+                // Fallback direct open/download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+    } catch (err) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+};
+
+window.openAttachmentResource = function(url, name, hintType = null) {
     if (!url || url === '#') {
         triggerToast('Файл недоступен', true);
         return;
     }
-    if (url.startsWith('data:image/')) {
-        const w = window.open('');
-        if (w) {
-            w.document.write(`<html><head><title>${name || 'Изображение'}</title><style>body{margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;}img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.5);}</style></head><body><img src="${url}"></body></html>`);
-            return;
-        }
-    }
-    if (url.startsWith('data:')) {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = name || 'file';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+
+    name = name || 'Вложение';
+    window.activeViewerResource = { url, name, hintType };
+
+    const modal = document.getElementById('modal-attachment-viewer');
+    const titleEl = document.getElementById('viewer-file-title');
+    const subTitleEl = document.getElementById('viewer-file-subtitle');
+    const iconEl = document.getElementById('viewer-file-icon');
+    const viewport = document.getElementById('viewer-content-viewport');
+    const btnDownload = document.getElementById('viewer-btn-download');
+
+    if (!modal || !viewport) {
+        // Fallback if modal container not in DOM
+        window.open(url, '_blank');
         return;
     }
-    window.open(url, '_blank', 'noopener,noreferrer');
+
+    if (titleEl) titleEl.textContent = name;
+    if (subTitleEl) subTitleEl.textContent = url.startsWith('data:') ? 'Локальный файл курса' : 'Онлайн материал';
+
+    if (btnDownload) {
+        btnDownload.onclick = () => window.downloadResourceFile(url, name);
+    }
+
+    // Detect media format
+    const lowerName = name.toLowerCase();
+    const isImageData = url.startsWith('data:image/');
+    const isImageExt = /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(lowerName);
+    const isVideoData = url.startsWith('data:video/');
+    const isVideoExt = /\.(mp4|webm|mov|ogg|m4v)$/i.test(lowerName);
+    const isAudioData = url.startsWith('data:audio/');
+    const isAudioExt = /\.(mp3|wav|ogg|m4a|aac)$/i.test(lowerName);
+    const isPdfData = url.startsWith('data:application/pdf');
+    const isPdfExt = /\.pdf$/i.test(lowerName);
+    const isYouTube = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i.test(url);
+
+    // Click outside backdrop to close
+    modal.onclick = (e) => {
+        if (e.target === modal || e.target === viewport) {
+            window.closeAttachmentViewer();
+        }
+    };
+
+    if (isImageData || isImageExt || hintType === 'image') {
+        // 1. IMAGE VIEWER
+        if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-image text-purple-400"></i>';
+        viewport.innerHTML = `
+            <div class="relative max-w-full max-h-full flex items-center justify-center">
+                <img src="${url}" alt="${escapeHtml(name)}" class="max-w-[92vw] max-h-[82vh] object-contain rounded-2xl shadow-2xl transition-transform duration-200 select-none">
+            </div>
+        `;
+    } else if (isYouTube) {
+        // 2. YOUTUBE VIDEO PLAYER
+        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i);
+        const ytId = ytMatch ? ytMatch[1] : '';
+        if (iconEl) iconEl.innerHTML = '<i class="fa-brands fa-youtube text-red-500"></i>';
+        viewport.innerHTML = `
+            <div class="w-full max-w-4xl aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/10">
+                <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1" class="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        `;
+    } else if (isVideoData || isVideoExt || hintType === 'video') {
+        // 3. HTML5 IN-APP VIDEO PLAYER
+        if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-film text-red-400"></i>';
+        viewport.innerHTML = `
+            <div class="w-full max-w-4xl max-h-[82vh] flex items-center justify-center rounded-2xl overflow-hidden shadow-2xl bg-black/90 border border-white/10">
+                <video controls autoplay class="w-full max-h-[80vh] rounded-2xl focus:outline-none">
+                    <source src="${url}">
+                    Ваш браузер не поддерживает воспроизведение этого видео.
+                </video>
+            </div>
+        `;
+    } else if (isAudioData || isAudioExt || hintType === 'audio') {
+        // 4. HTML5 AUDIO PLAYER
+        if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-headphones text-emerald-400"></i>';
+        viewport.innerHTML = `
+            <div class="bg-gray-900 border border-white/15 p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-4 text-center">
+                <div class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
+                    <i class="fa-solid fa-music"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white truncate">${escapeHtml(name)}</h4>
+                    <p class="text-xs text-gray-400 mt-1">Аудиозапись</p>
+                </div>
+                <audio controls autoplay class="w-full focus:outline-none pt-2">
+                    <source src="${url}">
+                </audio>
+            </div>
+        `;
+    } else if (isPdfData || isPdfExt || hintType === 'pdf') {
+        // 5. PDF DOCUMENT VIEWER
+        if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-file-pdf text-red-500"></i>';
+        viewport.innerHTML = `
+            <div class="w-full max-w-5xl h-[82vh] bg-white rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+                <iframe src="${url}" class="w-full h-full border-0"></iframe>
+            </div>
+        `;
+    } else if (url.startsWith('http://') || url.startsWith('https://')) {
+        // 6. EXTERNAL LINK PREVIEW / EMBED
+        if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-link text-blue-400"></i>';
+        viewport.innerHTML = `
+            <div class="bg-gray-900 border border-white/15 p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-5 text-center">
+                <div class="w-16 h-16 rounded-3xl bg-blue-500/20 text-google-blue flex items-center justify-center text-3xl mx-auto">
+                    <i class="fa-solid fa-globe"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-base font-bold text-white truncate">${escapeHtml(name)}</h4>
+                    <p class="text-xs text-gray-400 break-all">${escapeHtml(url)}</p>
+                </div>
+                <div class="flex justify-center space-x-3 pt-2">
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-2">
+                        <span>Перейти на сайт</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        `;
+    } else {
+        // 7. GENERIC FILE DOWNLOAD CARD
+        if (iconEl) iconEl.innerHTML = '<i class="fa-solid fa-file-lines text-google-blue"></i>';
+        viewport.innerHTML = `
+            <div class="bg-gray-900 border border-white/15 p-8 rounded-3xl shadow-2xl max-w-md w-full space-y-5 text-center">
+                <div class="w-16 h-16 rounded-3xl bg-white/10 text-white flex items-center justify-center text-3xl mx-auto">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-base font-bold text-white truncate">${escapeHtml(name)}</h4>
+                    <p class="text-xs text-gray-400">Этот тип файла предназначен для скачивания на устройство</p>
+                </div>
+                <div class="flex justify-center pt-2">
+                    <button onclick="window.downloadResourceFile('${url}', '${name.replace(/'/g, "\\'")}')" class="px-6 py-2.5 bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold rounded-xl shadow-lg transition flex items-center space-x-2">
+                        <i class="fa-solid fa-download text-xs"></i>
+                        <span>Скачать файл</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    modal.classList.remove('hidden');
 };
 
 function renderCreateAttachmentCards() {

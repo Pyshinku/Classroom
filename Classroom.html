@@ -2316,17 +2316,47 @@
         </div>
     </div>
 
+    <!-- MODAL: ATTACHMENT IN-APP MEDIA VIEWER & PLAYER (GOOGLE DRIVE / CLASSROOM STYLE) -->
+    <div id="modal-attachment-viewer" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col hidden select-none animate-in fade-in duration-200">
+        <!-- Top Toolbar -->
+        <div class="h-14 sm:h-16 px-4 sm:px-6 bg-black/40 border-b border-white/10 flex items-center justify-between text-white shrink-0 z-10">
+            <div class="flex items-center space-x-3 truncate mr-4">
+                <div id="viewer-file-icon" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sm shrink-0">
+                    <i class="fa-solid fa-file"></i>
+                </div>
+                <div class="truncate">
+                    <h3 id="viewer-file-title" class="text-xs sm:text-sm font-semibold truncate text-white">Просмотр файла</h3>
+                    <p id="viewer-file-subtitle" class="text-[10px] text-gray-400 truncate">Google Класс</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 shrink-0">
+                <button id="viewer-btn-download" type="button" class="px-3.5 py-2 bg-white/15 hover:bg-white/25 active:scale-95 text-white rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition shadow" title="Скачать файл">
+                    <i class="fa-solid fa-download text-xs"></i>
+                    <span class="hidden sm:inline">Скачать</span>
+                </button>
+                <button type="button" onclick="closeAttachmentViewer()" class="p-2.5 hover:bg-white/15 active:scale-95 rounded-xl text-gray-300 hover:text-white transition" title="Закрыть (Esc)">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center Media Viewport -->
+        <div id="viewer-content-viewport" class="flex-1 overflow-auto flex items-center justify-center p-3 sm:p-6 relative">
+            <!-- Dynamically populated media content -->
+        </div>
+    </div>
+
     <!-- GLOBAL IN-APP TOAST NOTIFICATION -->
     <div id="app-toast" class="fixed bottom-6 right-6 bg-gray-900/95 dark:bg-gray-100/95 text-white dark:text-gray-900 px-4 py-3 rounded-2xl shadow-2xl text-xs font-medium flex items-center space-x-2.5 transition-all duration-300 opacity-0 pointer-events-none z-50 transform translate-y-3">
         <span id="toast-icon" class="material-symbols-outlined text-green-400 dark:text-green-600 text-lg">check_circle</span>
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.23"></script>
-    <script src="js/notifications.js?v=2.0.23"></script>
-    <script src="js/auth.js?v=2.0.23"></script>
-    <script src="js/courses.js?v=2.0.23"></script>
-    <script src="js/assignments.js?v=2.0.23"></script>
-    <script src="js/app.js?v=2.0.23"></script>
+    <script src="js/state.js?v=2.0.24"></script>
+    <script src="js/notifications.js?v=2.0.24"></script>
+    <script src="js/auth.js?v=2.0.24"></script>
+    <script src="js/courses.js?v=2.0.24"></script>
+    <script src="js/assignments.js?v=2.0.24"></script>
+    <script src="js/app.js?v=2.0.24"></script>
 </body>
 </html>
