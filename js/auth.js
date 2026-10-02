@@ -1,8 +1,10 @@
 // Google Classroom - Official Google OAuth 2.0, Identity Services & User Engine
 
-// Google OAuth 2.0 Client ID Configuration
+// Official Google OAuth 2.0 Client ID Configuration
+const OFFICIAL_GOOGLE_CLIENT_ID = '650811325639-t1s3c1t3dbucgthvmn6clija5m8h8k07.apps.googleusercontent.com';
+
 function getGoogleClientId() {
-    return localStorage.getItem('google_classroom_oauth_client_id') || (typeof appState !== 'undefined' ? appState.googleClientId : '') || '';
+    return localStorage.getItem('google_classroom_oauth_client_id') || (typeof appState !== 'undefined' && appState.googleClientId) || OFFICIAL_GOOGLE_CLIENT_ID;
 }
 
 function setGoogleClientId(id) {
@@ -216,7 +218,11 @@ window.triggerGoogleSignIn = function() {
     }
 
     // Build authentic Google OAuth 2.0 endpoint
-    const redirectUri = window.location.origin + window.location.pathname;
+    let redirectUri = window.location.origin + window.location.pathname;
+    if (!redirectUri.endsWith('/') && !redirectUri.endsWith('.html')) {
+        redirectUri += '/';
+    }
+
     const params = new URLSearchParams({
         client_id: clientId,
         redirect_uri: redirectUri,

@@ -7,6 +7,7 @@ const DEFAULT_STATE = {
     currentCourseId: null,
     currentAssignmentId: null,
     activeCourseTab: 'stream',
+    googleClientId: '650811325639-t1s3c1t3dbucgthvmn6clija5m8h8k07.apps.googleusercontent.com',
     serverUrl: (function() {
         if (typeof window !== 'undefined') {
             if (window.location.hostname.endsWith('github.io')) {
