@@ -108,13 +108,7 @@ function renderSidebar() {
 function renderDashboard() {
     const user = getCurrentUser();
     const isGuest = isGuestUser();
-    const searchInput = document.getElementById('input-global-search');
-    const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
-
     let allCourses = (appState.courses || []).filter(c => !c.isArchived);
-    if (searchQuery) {
-        allCourses = allCourses.filter(c => (c.name || '').toLowerCase().includes(searchQuery) || (c.code || '').toLowerCase().includes(searchQuery) || (c.subject || '').toLowerCase().includes(searchQuery));
-    }
 
     const container = document.getElementById('courses-grid') || document.getElementById('dashboard-courses-grid');
     const badgeEl = document.getElementById('dashboard-courses-badge');

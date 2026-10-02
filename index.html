@@ -111,13 +111,6 @@
 
         <!-- Right Quick Actions -->
         <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
-            <!-- Search bar -->
-            <div class="relative hidden xl:flex items-center">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-google-gray dark:text-gray-400 text-base pointer-events-none flex items-center justify-center">search</span>
-                <input id="input-global-search" type="text" placeholder="Поиск курсов и заданий..." class="w-48 xl:w-60 pl-9 pr-3 py-2 text-xs bg-gray-100 dark:bg-gray-800 border border-transparent rounded-full focus:bg-white dark:focus:bg-gray-700 focus:border-google-blue dark:focus:border-google-blueDarkTheme focus:outline-none transition dark:text-gray-100 placeholder:text-gray-400">
-            </div>
-
-
             <!-- Dark / Light Mode Switch -->
             <button id="btn-theme-toggle" aria-label="Сменить тему" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 transition">
                 <span id="theme-icon" class="material-symbols-outlined text-xl">dark_mode</span>
@@ -334,35 +327,6 @@
             
             <!-- VIEW 1: COURSES DASHBOARD -->
             <section id="view-dashboard" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-                <!-- Welcome Banner -->
-                <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white shadow-xl">
-                    <div class="absolute -right-10 -bottom-10 opacity-15 pointer-events-none">
-                        <i class="fa-solid fa-graduation-cap text-9xl"></i>
-                    </div>
-                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div class="space-y-2 max-w-xl">
-                            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium">
-                                <i class="fa-solid fa-wifi text-emerald-300"></i>
-                                <span>Локальная сеть • Общая база данных</span>
-                            </div>
-                            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Учебное пространство</h1>
-                            <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
-                                Создавайте курсы, подключайте друзей по коду, делитесь учебными материалами и оценивайте работы онлайн.
-                            </p>
-                        </div>
-                        <div id="dash-quick-actions-box" class="flex flex-wrap items-center gap-3">
-                            <button id="btn-dash-join" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 text-xs font-medium flex items-center space-x-2 transition shadow-sm">
-                                <i class="fa-solid fa-key"></i>
-                                <span>Ввести код курса</span>
-                            </button>
-                            <button id="btn-dash-create" class="px-5 py-2.5 rounded-2xl bg-white text-google-blue hover:bg-blue-50 text-xs font-semibold flex items-center space-x-2 shadow-lg transition">
-                                <i class="fa-solid fa-plus"></i>
-                                <span>Создать курс</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Guest Mode Welcome Banner (Item 3) -->
                 <div id="dash-guest-banner" class="hidden p-6 rounded-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200 dark:border-blue-900 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                     <div class="flex items-center space-x-3.5">
@@ -2099,11 +2063,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.28"></script>
-    <script src="js/notifications.js?v=2.0.28"></script>
-    <script src="js/auth.js?v=2.0.28"></script>
-    <script src="js/courses.js?v=2.0.28"></script>
-    <script src="js/assignments.js?v=2.0.28"></script>
-    <script src="js/app.js?v=2.0.28"></script>
+    <script src="js/state.js?v=2.0.29"></script>
+    <script src="js/notifications.js?v=2.0.29"></script>
+    <script src="js/auth.js?v=2.0.29"></script>
+    <script src="js/courses.js?v=2.0.29"></script>
+    <script src="js/assignments.js?v=2.0.29"></script>
+    <script src="js/app.js?v=2.0.29"></script>
 </body>
 </html>
