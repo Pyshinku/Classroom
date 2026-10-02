@@ -60,6 +60,9 @@ function renderClassworkTab(course) {
                         <button onclick="event.stopPropagation(); window.navigateTo('edit-assignment', '${course.id}', '${a.id}')" class="p-2 text-google-gray hover:text-google-blue transition" title="Редактировать">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
+                        <button onclick="event.stopPropagation(); deleteAssignment('${a.id}', '${course.id}')" class="p-2 text-google-gray hover:text-red-500 transition" title="Удалить задание">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                     ` : ''}
                 </div>
             </div>
@@ -76,6 +79,13 @@ function initCreateAssignmentView(course, editAssign = null) {
         triggerToast('Только преподаватель этого курса может создавать или редактировать задания', true);
         window.navigateTo('course', course.id);
         return;
+    }
+
+    const btnClose = document.getElementById('btn-close-create-assignment');
+    if (btnClose) {
+        btnClose.onclick = () => {
+            window.navigateTo('course', course.id);
+        };
     }
 
     editingAssignmentId = editAssign ? editAssign.id : null;
@@ -188,7 +198,10 @@ function renderCreateAttachmentCards() {
     `).join('');
 }
 
+let isSavingAssignment = false;
 async function saveAssignmentWorkspace() {
+    if (isSavingAssignment) return;
+
     const title = (document.getElementById('ca-input-title').value || '').trim();
     const desc = (document.getElementById('ca-input-desc').value || '').trim();
     const points = Number(document.getElementById('ca-input-points').value) || 100;
@@ -210,54 +223,95 @@ async function saveAssignmentWorkspace() {
         return;
     }
 
-    if (!appState.assignments) appState.assignments = [];
+    const btnSave = document.getElementById('btn-publish-assignment-action');
+    const pubBtnText = document.getElementById('ca-publish-btn-text');
 
-    if (editingAssignmentId) {
-        // Edit existing assignment
-        const assign = appState.assignments.find(a => a.id === editingAssignmentId);
-        if (assign) {
-            assign.title = title;
-            assign.description = desc;
-            assign.points = points;
-            assign.deadline = deadline;
-            assign.topic = topic;
-            assign.attachments = [...pendingCreateAttachments];
+    try {
+        isSavingAssignment = true;
+        if (btnSave) {
+            btnSave.disabled = true;
+            btnSave.classList.add('opacity-50', 'cursor-not-allowed');
         }
-        persistState();
-        await sendServerAction('/api/assignments/update', {
-            id: editingAssignmentId,
-            courseId,
-            title,
-            description: desc,
-            points,
-            deadline,
-            topic,
-            attachments: [...pendingCreateAttachments]
-        });
-        triggerToast('Задание успешно обновлено!');
-    } else {
-        // Create new assignment
-        const newAssign = {
-            id: 'as_' + Date.now(),
-            courseId,
-            title,
-            description: desc,
-            points,
-            deadline,
-            topic,
-            attachments: [...pendingCreateAttachments],
-            submissions: {},
-            comments: [],
-            privateComments: {}
-        };
-        appState.assignments.unshift(newAssign);
-        persistState();
-        await sendServerAction('/api/assignments/create', newAssign);
-        triggerToast('Задание успешно опубликовано для студентов!');
-    }
+        if (pubBtnText) {
+            pubBtnText.textContent = editingAssignmentId ? 'Сохранение...' : 'Создание...';
+        }
 
-    window.navigateTo('course', courseId);
+        if (!appState.assignments) appState.assignments = [];
+
+        if (editingAssignmentId) {
+            // Edit existing assignment
+            const assign = appState.assignments.find(a => a.id === editingAssignmentId);
+            if (assign) {
+                assign.title = title;
+                assign.description = desc;
+                assign.points = points;
+                assign.deadline = deadline;
+                assign.topic = topic;
+                assign.attachments = [...pendingCreateAttachments];
+            }
+            persistState();
+            await sendServerAction('/api/assignments/update', {
+                id: editingAssignmentId,
+                courseId,
+                title,
+                description: desc,
+                points,
+                deadline,
+                topic,
+                attachments: [...pendingCreateAttachments]
+            });
+            triggerToast('Задание успешно обновлено!');
+        } else {
+            // Create new assignment
+            const newAssign = {
+                id: 'as_' + Date.now(),
+                courseId,
+                title,
+                description: desc,
+                points,
+                deadline,
+                topic,
+                attachments: [...pendingCreateAttachments],
+                submissions: {},
+                comments: [],
+                privateComments: {}
+            };
+            appState.assignments.unshift(newAssign);
+            persistState();
+            await sendServerAction('/api/assignments/create', newAssign);
+            triggerToast('Задание успешно опубликовано для студентов!');
+        }
+
+        window.navigateTo('course', courseId);
+    } finally {
+        isSavingAssignment = false;
+        if (btnSave) {
+            btnSave.disabled = false;
+            btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        if (pubBtnText) {
+            pubBtnText.textContent = editingAssignmentId ? 'Сохранить изменения' : 'Создать задание';
+        }
+    }
 }
+
+window.deleteAssignment = async function(assignId, courseId) {
+    const assign = (appState.assignments || []).find(a => a.id === assignId);
+    if (!assign) return;
+    const course = (appState.courses || []).find(c => c.id === courseId);
+    if (!course || !isCourseTeacher(course)) {
+        triggerToast('У вас нет прав для удаления этого задания', true);
+        return;
+    }
+    if (!confirm(`Удалить задание "${assign.title}"?`)) return;
+
+    appState.assignments = (appState.assignments || []).filter(a => a.id !== assignId);
+    persistState();
+    renderClassworkTab(course);
+    if (typeof renderGradesTab === 'function') renderGradesTab(course);
+    triggerToast('Задание удалено');
+    await sendServerAction('/api/assignments/delete', { id: assignId, courseId });
+};
 
 function renderFullAssignmentWorkspace(course, assign) {
     if (!course || !assign) return;

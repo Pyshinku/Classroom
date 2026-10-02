@@ -522,50 +522,87 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // Course Create Modal Banner Presets & Custom URL
+    const courseBannerPresets = document.querySelectorAll('#course-banner-presets .banner-preset-option');
+    const customBannerInput = document.getElementById('form-course-custom-banner');
+
+    courseBannerPresets.forEach(opt => {
+        opt.onclick = () => {
+            selectedBannerImg = opt.dataset.img || '';
+            selectedBannerGrad = opt.dataset.grad || 'from-blue-600 to-indigo-700';
+            if (customBannerInput) customBannerInput.value = '';
+            courseBannerPresets.forEach(o => o.classList.remove('ring-2', 'ring-google-blue', 'scale-105'));
+            opt.classList.add('ring-2', 'ring-google-blue', 'scale-105');
+        };
+    });
+
+    if (customBannerInput) {
+        customBannerInput.oninput = () => {
+            const val = customBannerInput.value.trim();
+            if (val) {
+                selectedBannerImg = val;
+                courseBannerPresets.forEach(o => o.classList.remove('ring-2', 'ring-google-blue', 'scale-105'));
+            }
+        };
+    }
+
     // Course Creation Form Submit
     const btnSubmitCourse = document.getElementById('btn-submit-create-course');
     if (btnSubmitCourse) {
         btnSubmitCourse.onclick = async () => {
+            if (btnSubmitCourse.disabled) return;
+
             const name = (document.getElementById('form-course-name').value || '').trim();
             const section = (document.getElementById('form-course-section').value || '').trim();
             const subject = (document.getElementById('form-course-subject').value || '').trim();
+            const customUrl = customBannerInput ? customBannerInput.value.trim() : '';
 
             if (!name) {
                 triggerToast('Укажите название курса', true);
                 return;
             }
 
-            const user = getCurrentUser();
-            const newCourse = {
-                id: 'course_' + Date.now(),
-                name,
-                section: section || 'Основная группа',
-                subject: subject || 'Общий предмет',
-                description: 'Программа и материалы курса.',
-                code: Math.random().toString(36).substring(2, 7).toUpperCase(),
-                banner: selectedBannerImg,
-                gradient: selectedBannerGrad,
-                teacherId: user.id,
-                teacherEmail: user.email,
-                teacherName: user.name,
-                studentIds: [],
-                coTeacherIds: []
-            };
+            try {
+                btnSubmitCourse.disabled = true;
+                btnSubmitCourse.classList.add('opacity-50', 'cursor-not-allowed');
 
-            if (!appState.courses) appState.courses = [];
-            appState.courses.unshift(newCourse);
-            persistState();
+                const user = getCurrentUser();
+                const newCourse = {
+                    id: 'course_' + Date.now(),
+                    name,
+                    section: section || 'Основная группа',
+                    subject: subject || 'Общий предмет',
+                    description: 'Программа и материалы курса.',
+                    code: Math.random().toString(36).substring(2, 7).toUpperCase(),
+                    banner: customUrl || selectedBannerImg,
+                    gradient: selectedBannerGrad || 'from-blue-600 to-indigo-700',
+                    teacherId: user.id,
+                    teacherEmail: user.email,
+                    teacherName: user.name,
+                    studentIds: [],
+                    coTeacherIds: []
+                };
 
-            document.getElementById('modal-create-course').classList.add('hidden');
-            document.getElementById('form-course-name').value = '';
-            document.getElementById('form-course-section').value = '';
+                if (!appState.courses) appState.courses = [];
+                appState.courses.unshift(newCourse);
+                persistState();
 
-            renderDashboard();
-            renderSidebar();
-            window.navigateTo('course', newCourse.id);
-            triggerToast('Курс успешно создан!');
+                document.getElementById('modal-create-course').classList.add('hidden');
+                document.getElementById('form-course-name').value = '';
+                document.getElementById('form-course-section').value = '';
+                document.getElementById('form-course-subject').value = '';
+                if (customBannerInput) customBannerInput.value = '';
 
-            await sendServerAction('/api/courses/create', newCourse);
+                renderDashboard();
+                renderSidebar();
+                window.navigateTo('course', newCourse.id);
+                triggerToast('Курс успешно создан!');
+
+                await sendServerAction('/api/courses/create', newCourse);
+            } finally {
+                btnSubmitCourse.disabled = false;
+                btnSubmitCourse.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
         };
     }
 

@@ -166,8 +166,12 @@ function renderDashboard() {
             <div onclick="if(isGuestUser()){ triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true); triggerGoogleSignIn(); return; } window.navigateTo('course', '${course.id}')" class="group bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1">
                 <div>
                     <!-- Header Banner -->
-                    <div class="h-32 bg-gradient-to-tr ${course.gradient || 'from-blue-600 to-indigo-700'} relative p-5 flex flex-col justify-between overflow-hidden">
-                        ${course.banner ? `<div class="course-card-bg absolute inset-0 opacity-40 mix-blend-overlay" style="background-image: url('${course.banner}');"></div>` : ''}
+                    ${course.banner ? `
+                        <div class="h-32 relative p-5 flex flex-col justify-between overflow-hidden bg-cover bg-center" style="background-image: url('${course.banner}');">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20 z-0"></div>
+                    ` : `
+                        <div class="h-32 bg-gradient-to-tr ${course.gradient || 'from-blue-600 to-indigo-700'} relative p-5 flex flex-col justify-between overflow-hidden">
+                    `}
                         <div class="relative z-10 flex items-start justify-between">
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/20 backdrop-blur-md text-white border border-white/30 tracking-wider">
                                 ${course.code}
@@ -470,6 +474,11 @@ function initAnnouncementBox(course) {
     if (avatarEl) {
         avatarEl.textContent = user.avatar || 'ИС';
         avatarEl.className = `w-10 h-10 rounded-full bg-gradient-to-tr ${user.bg || 'from-blue-600 to-indigo-600'} text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0`;
+    }
+
+    if (bodyInput && (bodyInput.value.trim() || document.activeElement === bodyInput || (exp && !exp.classList.contains('hidden')))) {
+        // User is currently composing an announcement, preserve active input
+        return;
     }
 
     pendingAnnouncementAttachments = [];

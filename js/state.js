@@ -203,7 +203,10 @@ async function syncWithServer(showFeedback = false) {
 
             persistState();
             updateServerBadge(true);
-            if (typeof renderAllViews === 'function') renderAllViews();
+            const isUserInteracting = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+            if (typeof renderAllViews === 'function' && !isUserInteracting) {
+                renderAllViews();
+            }
             if (showFeedback && typeof triggerToast === 'function') triggerToast('База данных синхронизирована!');
         } else {
             updateServerBadge(false);
@@ -237,7 +240,10 @@ async function sendServerAction(endpoint, payload) {
                 appState.assignments = result.data.assignments || appState.assignments;
                 appState.lastUpdate = result.data.lastUpdate || Date.now();
                 persistState();
-                if (typeof renderAllViews === 'function') renderAllViews();
+                const isUserInteracting = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+                if (typeof renderAllViews === 'function' && !isUserInteracting) {
+                    renderAllViews();
+                }
             }
             return { success: true, data: result };
         } else {
@@ -248,12 +254,15 @@ async function sendServerAction(endpoint, payload) {
     }
 }
 
-// Live polling every 3s
+// Live polling every 15s (does not interrupt active typing)
 setInterval(() => {
     if (typeof document !== 'undefined' && !document.hidden) {
-        syncWithServer(false);
+        const isUserInteracting = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+        if (!isUserInteracting) {
+            syncWithServer(false);
+        }
     }
-}, 3000);
+}, 15000);
 
 function compressImage(file, maxWidth, maxHeight, quality = 0.82) {
     return new Promise((resolve, reject) => {
