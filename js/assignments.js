@@ -316,44 +316,115 @@ window.deleteAssignment = async function(assignId, courseId) {
     await sendServerAction('/api/assignments/delete', { id: assignId, courseId });
 };
 
+window.saveStudentGrade = async function(assignId, studentId, gradeVal) {
+    const assign = (appState.assignments || []).find(a => a.id === assignId);
+    if (!assign) return;
+    if (!assign.submissions) assign.submissions = {};
+    if (!assign.submissions[studentId]) {
+        assign.submissions[studentId] = {
+            submittedAt: null,
+            attachments: []
+        };
+    }
+    const num = gradeVal === '' ? null : Number(gradeVal);
+    assign.submissions[studentId].grade = num;
+    persistState();
+    triggerToast('Оценка сохранена');
+    await sendServerAction('/api/assignments/grade', {
+        assignmentId: assignId,
+        studentId,
+        grade: num
+    });
+};
+
 function renderFullAssignmentWorkspace(course, assign) {
     if (!course || !assign) return;
 
     const user = getCurrentUser();
     const isTeacher = isCourseTeacher(course, user);
 
-    document.getElementById('assign-title').textContent = assign.title;
-    document.getElementById('assign-meta-info').textContent = `Автор: ${course.name} • ${assign.deadline ? `Срок сдачи: ${assign.deadline}` : 'Без дедлайна'}`;
-    document.getElementById('assign-points-badge').textContent = `${assign.points} баллов`;
-
-    const descEl = document.getElementById('assign-description');
-    if (descEl) {
-        descEl.textContent = assign.description || 'Инструкции к выполнению отсутствуют.';
+    // Back Button
+    const backBtn = document.getElementById('btn-back-to-course-classwork');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            window.navigateTo('course', course.id);
+            if (typeof switchCourseTab === 'function') switchCourseTab('classwork');
+        };
     }
 
-    // Attachments
-    const attsList = document.getElementById('assign-attachments-list');
-    if (attsList) {
-        const atts = assign.attachments || [];
-        if (atts.length === 0) {
-            attsList.innerHTML = '<p class="text-xs text-google-gray italic">Материалы отсутствуют</p>';
-        } else {
-            attsList.innerHTML = atts.map(att => `
-                <a href="${att.url}" target="_blank" class="flex items-center space-x-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-google-border dark:border-google-darkBorder hover:border-google-blue transition group">
-                    <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900 text-google-blue dark:text-blue-300 flex items-center justify-center text-xs shrink-0">
-                        <i class="fa-solid ${att.type === 'video' ? 'fa-video text-red-500' : (att.type === 'link' ? 'fa-link text-emerald-500' : 'fa-paperclip')}"></i>
-                    </div>
-                    <div class="truncate">
-                        <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme truncate">${att.name || 'Материал'}</p>
-                        <p class="text-[10px] text-google-gray truncate">${att.url}</p>
-                    </div>
-                </a>
-            `).join('');
+    const courseBadge = document.getElementById('assign-full-course-badge');
+    if (courseBadge) courseBadge.textContent = course.name;
+
+    // Assignment Main Details
+    const titleEl = document.getElementById('assign-full-title');
+    if (titleEl) titleEl.textContent = assign.title || 'Без названия';
+
+    const authorEl = document.getElementById('assign-full-author');
+    if (authorEl) {
+        authorEl.textContent = `Автор: ${course.teacherName || course.name || 'Преподаватель'}`;
+    }
+
+    const deadlineEl = document.getElementById('assign-full-deadline');
+    if (deadlineEl) {
+        deadlineEl.textContent = assign.deadline && assign.deadline !== 'Без срока'
+            ? `Срок сдачи: ${assign.deadline}`
+            : 'Срок сдачи: Без срока';
+    }
+
+    const pointsEl = document.getElementById('assign-full-points');
+    if (pointsEl) {
+        pointsEl.textContent = `${assign.points || 100} баллов`;
+    }
+
+    // Edit button (for teacher only)
+    const editBtn = document.getElementById('btn-edit-current-assignment');
+    if (editBtn) {
+        editBtn.classList.toggle('hidden', !isTeacher);
+        if (isTeacher) {
+            editBtn.onclick = () => window.navigateTo('edit-assignment', course.id, assign.id);
         }
     }
 
-    // Cards display for student vs teacher
-    const studentCard = document.getElementById('assign-student-work-card');
+    // Description / Instructions
+    const descEl = document.getElementById('assign-full-description');
+    if (descEl) {
+        descEl.textContent = assign.description || assign.instructions || 'Инструкция к выполнению не указана.';
+    }
+
+    // Attachments / Materials by Teacher
+    const matBox = document.getElementById('assign-full-materials-box');
+    const matList = document.getElementById('assign-full-materials-list');
+    const atts = assign.attachments || [];
+    if (matBox && matList) {
+        if (atts.length > 0) {
+            matBox.classList.remove('hidden');
+            matList.innerHTML = atts.map(att => {
+                let iconClass = 'fa-paperclip text-google-blue';
+                if (att.type === 'video') iconClass = 'fa-video text-red-500';
+                else if (att.type === 'link') iconClass = 'fa-link text-emerald-500';
+                else if (att.type === 'image' || (att.url && (att.url.startsWith('data:image/') || att.url.match(/\.(jpeg|jpg|gif|png|webp)/i)))) iconClass = 'fa-image text-purple-500';
+
+                return `
+                <a href="${att.url || '#'}" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-google-border dark:border-google-darkBorder hover:border-google-blue dark:hover:border-google-blueDarkTheme transition group shadow-xs">
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-sm shrink-0">
+                        <i class="fa-solid ${iconClass}"></i>
+                    </div>
+                    <div class="truncate flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme truncate">${att.name || 'Прикрепленный материал'}</p>
+                        <p class="text-[10px] text-google-gray truncate">${att.url && att.url.startsWith('data:') ? 'Локальный файл' : (att.url || '')}</p>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-google-gray group-hover:text-google-blue shrink-0"></i>
+                </a>
+                `;
+            }).join('');
+        } else {
+            matBox.classList.add('hidden');
+            matList.innerHTML = '';
+        }
+    }
+
+    // Role-based Cards Separation: Student Work Card vs Teacher Grading Card
+    const studentCard = document.getElementById('assign-student-side-card');
     const teacherCard = document.getElementById('assign-teacher-side-card');
 
     if (isTeacher) {
@@ -364,12 +435,15 @@ function renderFullAssignmentWorkspace(course, assign) {
         const subs = assign.submissions || {};
         const students = (appState.accounts || []).filter(a => (course.studentIds || []).includes(a.id));
         const submittedCount = Object.values(subs).filter(s => Boolean(s.submittedAt)).length;
-        const gradedCount = Object.values(subs).filter(s => s.grade !== undefined && s.grade !== null).length;
+        const gradedCount = Object.values(subs).filter(s => s.grade !== undefined && s.grade !== null && s.grade !== '').length;
         const pendingCount = students.length - submittedCount;
 
-        document.getElementById('teacher-stat-submitted').textContent = submittedCount;
-        document.getElementById('teacher-stat-pending').textContent = Math.max(0, pendingCount);
-        document.getElementById('teacher-stat-graded').textContent = gradedCount;
+        const statSub = document.getElementById('teacher-stat-submitted');
+        const statPen = document.getElementById('teacher-stat-pending');
+        const statGrd = document.getElementById('teacher-stat-graded');
+        if (statSub) statSub.textContent = submittedCount;
+        if (statPen) statPen.textContent = Math.max(0, pendingCount);
+        if (statGrd) statGrd.textContent = gradedCount;
 
         const studentsListEl = document.getElementById('assign-teacher-students-list');
         if (studentsListEl) {
@@ -378,16 +452,18 @@ function renderFullAssignmentWorkspace(course, assign) {
             } else {
                 studentsListEl.innerHTML = students.map(st => {
                     const sub = subs[st.id];
+                    const isSub = Boolean(sub && sub.submittedAt);
+                    const gradeVal = sub && sub.grade !== undefined && sub.grade !== null ? sub.grade : '';
                     return `
-                        <div class="p-3 rounded-2xl border border-google-border dark:border-google-darkBorder flex items-center justify-between">
-                            <div class="flex items-center space-x-2.5 truncate">
+                        <div class="p-3 rounded-2xl border border-google-border dark:border-google-darkBorder flex items-center justify-between space-x-2 bg-gray-50/50 dark:bg-gray-800/40">
+                            <div class="flex items-center space-x-2.5 truncate flex-1 min-w-0">
                                 <span class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 font-bold flex items-center justify-center text-xs shrink-0">${st.avatar || 'С'}</span>
                                 <div class="truncate">
                                     <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${st.name}</p>
-                                    <p class="text-[10px] text-google-gray">${sub && sub.submittedAt ? `Сдано: ${sub.submittedAt}` : 'Не сдано'}</p>
+                                    <p class="text-[10px] ${isSub ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-google-gray'}">${isSub ? `Сдано: ${sub.submittedAt}` : 'Не сдано'}</p>
                                 </div>
                             </div>
-                            <input type="number" min="0" max="${assign.points}" value="${sub && sub.grade !== undefined ? sub.grade : ''}" placeholder="Балл" onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-gray-50 dark:bg-gray-800">
+                            <input type="number" min="0" max="${assign.points || 100}" value="${gradeVal}" placeholder="Балл" onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-google-blue">
                         </div>
                     `;
                 }).join('');
@@ -399,27 +475,39 @@ function renderFullAssignmentWorkspace(course, assign) {
 
         const sub = assign.submissions && assign.submissions[user.id];
         const isSubmitted = Boolean(sub && sub.submittedAt);
-        const hasGrade = sub && sub.grade !== undefined;
+        const hasGrade = sub && sub.grade !== undefined && sub.grade !== null && sub.grade !== '';
 
         const statusBadge = document.getElementById('assign-student-status-badge');
-        const submitBtn = document.getElementById('assign-btn-submit-work');
-        const unsubmitBtn = document.getElementById('assign-btn-unsubmit-work');
+        const formBox = document.getElementById('assign-student-form');
+        const submittedBox = document.getElementById('assign-student-submitted-box');
+        const submittedText = document.getElementById('assign-student-submitted-text');
+        const submittedGradeBox = document.getElementById('assign-student-submitted-grade-box');
 
         if (hasGrade) {
-            statusBadge.textContent = `Оценено: ${sub.grade}/${assign.points}`;
-            statusBadge.className = 'text-xs font-bold text-emerald-600 dark:text-emerald-400';
-            if (submitBtn) submitBtn.classList.add('hidden');
-            if (unsubmitBtn) unsubmitBtn.classList.remove('hidden');
+            if (statusBadge) {
+                statusBadge.textContent = `Оценка: ${sub.grade}/${assign.points || 100}`;
+                statusBadge.className = 'text-xs font-bold text-emerald-600 dark:text-emerald-400';
+            }
+            if (formBox) formBox.classList.add('hidden');
+            if (submittedBox) submittedBox.classList.remove('hidden');
+            if (submittedText) submittedText.textContent = `Сдано ${sub.submittedAt || ''}`;
+            if (submittedGradeBox) submittedGradeBox.textContent = `Ваш результат: ${sub.grade} из ${assign.points || 100} баллов`;
         } else if (isSubmitted) {
-            statusBadge.textContent = 'Сдано';
-            statusBadge.className = 'text-xs font-bold text-google-blue dark:text-google-blueDarkTheme';
-            if (submitBtn) submitBtn.classList.add('hidden');
-            if (unsubmitBtn) unsubmitBtn.classList.remove('hidden');
+            if (statusBadge) {
+                statusBadge.textContent = 'Сдано';
+                statusBadge.className = 'text-xs font-bold text-google-blue dark:text-google-blueDarkTheme';
+            }
+            if (formBox) formBox.classList.add('hidden');
+            if (submittedBox) submittedBox.classList.remove('hidden');
+            if (submittedText) submittedText.textContent = `Сдано ${sub.submittedAt || ''}`;
+            if (submittedGradeBox) submittedGradeBox.textContent = 'Ожидает проверки преподавателем';
         } else {
-            statusBadge.textContent = 'Назначено';
-            statusBadge.className = 'text-xs font-semibold text-google-gray';
-            if (submitBtn) submitBtn.classList.remove('hidden');
-            if (unsubmitBtn) unsubmitBtn.classList.add('hidden');
+            if (statusBadge) {
+                statusBadge.textContent = 'Назначено';
+                statusBadge.className = 'text-xs font-semibold text-google-gray';
+            }
+            if (formBox) formBox.classList.remove('hidden');
+            if (submittedBox) submittedBox.classList.add('hidden');
         }
     }
 
