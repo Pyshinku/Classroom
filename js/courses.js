@@ -472,20 +472,23 @@ function initAnnouncementBox(course) {
     const previewEl = document.getElementById('announcement-attachments-preview');
 
     if (avatarEl) {
-        avatarEl.textContent = user.avatar || 'ИС';
-        avatarEl.className = `w-10 h-10 rounded-full bg-gradient-to-tr ${user.bg || 'from-blue-600 to-indigo-600'} text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0`;
+        if (user.photoUrl) {
+            avatarEl.innerHTML = `<img src="${user.photoUrl}" class="w-full h-full object-cover">`;
+            avatarEl.className = 'w-10 h-10 rounded-full overflow-hidden shadow-sm shrink-0 bg-gray-200 dark:bg-gray-700';
+        } else {
+            avatarEl.textContent = user.avatar || 'ИС';
+            avatarEl.className = `w-10 h-10 rounded-full bg-gradient-to-tr ${user.bg || 'from-blue-600 to-indigo-600'} text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0`;
+        }
     }
 
-    if (bodyInput && (bodyInput.value.trim() || document.activeElement === bodyInput || (exp && !exp.classList.contains('hidden')))) {
-        // User is currently composing an announcement, preserve active input
-        return;
+    const isTyping = bodyInput && (bodyInput.value.trim() || document.activeElement === bodyInput || (exp && !exp.classList.contains('hidden')));
+    if (!isTyping) {
+        pendingAnnouncementAttachments = [];
+        if (bodyInput) bodyInput.value = '';
+        if (previewEl) previewEl.innerHTML = '';
+        if (col) col.classList.remove('hidden');
+        if (exp) exp.classList.add('hidden');
     }
-
-    pendingAnnouncementAttachments = [];
-    if (bodyInput) bodyInput.value = '';
-    if (previewEl) previewEl.innerHTML = '';
-    if (col) col.classList.remove('hidden');
-    if (exp) exp.classList.add('hidden');
 
     if (col) {
         col.onclick = () => {
@@ -567,11 +570,17 @@ function initAnnouncementBox(course) {
                 return;
             }
 
+            if (btnPublish.disabled) return;
+            btnPublish.disabled = true;
+
             const newAnn = {
                 id: 'ann_' + Date.now(),
                 courseId: course.id,
+                authorId: user.id,
                 authorName: user.name,
                 authorAvatar: user.avatar,
+                authorPhoto: user.photoUrl || '',
+                authorBg: user.bg || 'from-blue-600 to-indigo-600',
                 date: 'Сегодня',
                 body: text,
                 attachments: [...pendingAnnouncementAttachments],
@@ -591,7 +600,11 @@ function initAnnouncementBox(course) {
             renderStreamTab(course);
             triggerToast('Запись опубликована в ленте!');
 
-            await sendServerAction('/api/announcements/create', newAnn);
+            try {
+                await sendServerAction('/api/announcements/create', newAnn);
+            } finally {
+                btnPublish.disabled = false;
+            }
         };
     }
 }
@@ -620,24 +633,34 @@ function renderStreamTab(course) {
             </a>
         `).join('');
 
-        const commentsHtml = (a.comments || []).map(c => `
+        const commentsHtml = (a.comments || []).map(c => {
+            const cAuthor = (appState.accounts || []).find(acc => acc.name === c.authorName) || {};
+            const cPhoto = c.authorPhoto || cAuthor.photoUrl;
+            const cAvatarHtml = cPhoto
+                ? `<img src="${cPhoto}" class="w-6 h-6 rounded-full object-cover shrink-0">`
+                : `<div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-google-blue dark:text-blue-300 font-bold flex items-center justify-center text-[10px] shrink-0">${c.authorAvatar || 'С'}</div>`;
+
+            return `
             <div class="flex items-start space-x-2.5 text-xs pt-2">
-                <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-google-blue dark:text-blue-300 font-bold flex items-center justify-center text-[10px] shrink-0">
-                    ${c.authorAvatar || 'С'}
-                </div>
+                ${cAvatarHtml}
                 <div class="flex-1 min-w-0">
                     <p class="font-semibold text-gray-900 dark:text-gray-100">${c.authorName} <span class="font-normal text-[10px] text-google-gray ml-1">${c.date || ''}</span></p>
                     <p class="text-gray-700 dark:text-gray-300">${c.text}</p>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
+
+        const author = (appState.accounts || []).find(acc => acc.id === a.authorId || acc.name === a.authorName) || {};
+        const photo = a.authorPhoto || author.photoUrl;
+        const avatarElHtml = photo
+            ? `<img src="${photo}" class="w-10 h-10 rounded-full object-cover shadow-sm shrink-0">`
+            : `<div class="w-10 h-10 rounded-full bg-gradient-to-tr ${a.authorBg || author.bg || 'from-blue-600 to-indigo-600'} text-white font-bold flex items-center justify-center text-xs shadow-sm shrink-0">${a.authorAvatar || author.avatar || 'П'}</div>`;
 
         return `
             <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-sm shrink-0">
-                        ${a.authorAvatar || 'П'}
-                    </div>
+                    ${avatarElHtml}
                     <div>
                         <p class="text-xs font-bold text-gray-900 dark:text-gray-100">${a.authorName}</p>
                         <p class="text-[10px] text-google-gray">${a.date || 'Только что'}</p>
@@ -678,6 +701,7 @@ window.sendAnnouncementComment = async function(annId) {
         announcementId: annId,
         authorName: user.name,
         authorAvatar: user.avatar,
+        authorPhoto: user.photoUrl || '',
         text,
         date: 'Только что'
     };
@@ -694,25 +718,28 @@ window.sendAnnouncementComment = async function(annId) {
 };
 
 function renderPeopleTab(course) {
-    const teacher = (appState.accounts || []).find(a => a.id === course.teacherId) || { name: 'Преподаватель курса', email: '' };
+    const teacher = (appState.accounts || []).find(a => a.id === course.teacherId || (a.email && a.email.toLowerCase() === (course.teacherEmail || '').toLowerCase())) || { name: course.teacherName || 'Преподаватель курса', email: course.teacherEmail || '' };
     const coTeacherIds = course.coTeacherIds || [];
     const coTeachers = (appState.accounts || []).filter(a => coTeacherIds.includes(a.id));
 
     const teachersListEl = document.getElementById('people-teachers-list');
     if (teachersListEl) {
-        teachersListEl.innerHTML = [teacher, ...coTeachers].map(t => `
+        teachersListEl.innerHTML = [teacher, ...coTeachers].map(t => {
+            const avatarHtml = t.photoUrl
+                ? `<img src="${t.photoUrl}" class="w-10 h-10 rounded-full object-cover shadow shrink-0">`
+                : `<span class="w-10 h-10 rounded-full bg-gradient-to-tr ${t.bg || 'from-blue-600 to-indigo-600'} text-white font-bold flex items-center justify-center text-xs shadow shrink-0">${t.avatar || 'П'}</span>`;
+            return `
             <div class="py-3 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <span class="w-10 h-10 rounded-full bg-gradient-to-tr ${t.bg || 'from-blue-600 to-indigo-600'} text-white font-bold flex items-center justify-center text-xs shadow">
-                        ${t.avatar || 'П'}
-                    </span>
+                    ${avatarHtml}
                     <div>
                         <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">${t.name}</p>
                         <p class="text-[10px] text-google-gray">${t.email || ''}</p>
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     // Students list
@@ -731,12 +758,14 @@ function renderPeopleTab(course) {
                 </div>
             `;
         } else {
-            studentsListEl.innerHTML = students.map(s => `
+            studentsListEl.innerHTML = students.map(s => {
+                const sAvatarHtml = s.photoUrl
+                    ? `<img src="${s.photoUrl}" class="w-10 h-10 rounded-full object-cover shadow shrink-0">`
+                    : `<span class="w-10 h-10 rounded-full bg-gradient-to-tr ${s.bg || 'from-emerald-500 to-teal-600'} text-white font-bold flex items-center justify-center text-xs shadow shrink-0">${s.avatar || 'С'}</span>`;
+                return `
                 <div class="py-3 flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <span class="w-10 h-10 rounded-full bg-gradient-to-tr ${s.bg || 'from-emerald-500 to-teal-600'} text-white font-bold flex items-center justify-center text-xs shadow">
-                            ${s.avatar || 'С'}
-                        </span>
+                        ${sAvatarHtml}
                         <div>
                             <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">${s.name}</p>
                             <p class="text-[10px] text-google-gray">${s.email || ''}</p>
@@ -748,7 +777,8 @@ function renderPeopleTab(course) {
                         </button>
                     ` : ''}
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
     }
 }

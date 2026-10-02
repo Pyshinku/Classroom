@@ -4,7 +4,7 @@ let pendingCreateAttachments = [];
 let editingAssignmentId = null;
 
 function renderClassworkTab(course) {
-    const list = document.getElementById('classwork-assignments-list');
+    const list = document.getElementById('classwork-cards-list') || document.getElementById('classwork-assignments-list');
     if (!list) return;
 
     const assigns = (appState.assignments || []).filter(a => a.courseId === course.id);
@@ -244,6 +244,7 @@ async function saveAssignmentWorkspace() {
             if (assign) {
                 assign.title = title;
                 assign.description = desc;
+                assign.instructions = desc;
                 assign.points = points;
                 assign.deadline = deadline;
                 assign.topic = topic;
@@ -255,6 +256,7 @@ async function saveAssignmentWorkspace() {
                 courseId,
                 title,
                 description: desc,
+                instructions: desc,
                 points,
                 deadline,
                 topic,
@@ -268,6 +270,7 @@ async function saveAssignmentWorkspace() {
                 courseId,
                 title,
                 description: desc,
+                instructions: desc,
                 points,
                 deadline,
                 topic,
