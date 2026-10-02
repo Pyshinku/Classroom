@@ -76,28 +76,51 @@ function renderHeaderNotifications() {
         listEl.innerHTML = `
             <div class="py-8 text-center text-google-gray space-y-2">
                 <i class="fa-regular fa-bell text-3xl opacity-40"></i>
-                <p class="text-xs">У вас нет новых уведомлений</p>
+                <p class="text-xs font-medium">У вас нет новых уведомлений</p>
                 <p class="text-[11px] text-google-gray opacity-70">Здесь будут отображаться новые задания, оценки и объявления</p>
             </div>
         `;
         return;
     }
 
-    listEl.innerHTML = notifications.map((n, i) => `
-        <div onclick="clickHeaderNotification(${i})" class="p-2.5 rounded-2xl border border-google-border dark:border-google-darkBorder flex items-start space-x-3 cursor-pointer transition ${n.read ? 'bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'bg-blue-50/60 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900'}">
-            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-google-blue dark:text-blue-300 flex items-center justify-center shrink-0 text-xs">
-                <i class="fa-solid ${n.type === 'assignment' ? 'fa-clipboard-list' : (n.type === 'grade' ? 'fa-award' : 'fa-comment')}"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between">
-                    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${n.title}</p>
-                    ${!n.read ? '<span class="w-2 h-2 rounded-full bg-google-blue shrink-0 ml-1"></span>' : ''}
+    const getIconInfo = (type) => {
+        switch (type) {
+            case 'assignment':
+                return { icon: 'fa-clipboard-list', bg: 'bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300' };
+            case 'grade':
+                return { icon: 'fa-award', bg: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300' };
+            case 'submission':
+                return { icon: 'fa-file-arrow-up', bg: 'bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-300' };
+            case 'comment_private':
+                return { icon: 'fa-envelope', bg: 'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300' };
+            case 'comment_post':
+            case 'comment':
+                return { icon: 'fa-comment', bg: 'bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300' };
+            case 'test':
+                return { icon: 'fa-bell', bg: 'bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300' };
+            default:
+                return { icon: 'fa-bell', bg: 'bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300' };
+        }
+    };
+
+    listEl.innerHTML = notifications.map((n, i) => {
+        const iconInfo = getIconInfo(n.type);
+        return `
+            <div onclick="clickHeaderNotification(${i})" class="p-2.5 rounded-2xl border border-google-border dark:border-google-darkBorder flex items-start space-x-3 cursor-pointer transition ${n.read ? 'bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50' : 'bg-blue-50/60 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900'}">
+                <div class="w-8 h-8 rounded-full ${iconInfo.bg} flex items-center justify-center shrink-0 text-xs">
+                    <i class="fa-solid ${iconInfo.icon}"></i>
                 </div>
-                <p class="text-[11px] text-gray-600 dark:text-gray-300 truncate">${n.text}</p>
-                <p class="text-[10px] text-google-gray mt-0.5">${n.time}</p>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${n.title}</p>
+                        ${!n.read ? '<span class="w-2 h-2 rounded-full bg-google-blue shrink-0 ml-1"></span>' : ''}
+                    </div>
+                    <p class="text-[11px] text-gray-600 dark:text-gray-300 truncate">${n.text}</p>
+                    <p class="text-[10px] text-google-gray mt-0.5">${n.time || 'Недавно'}</p>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 window.clickHeaderNotification = function(idx) {
@@ -209,7 +232,7 @@ function renderSettingsView() {
     }
 
     // Render course-specific toggles
-    const courseListEl = document.getElementById('settings-courses-notifications-list');
+    const courseListEl = document.getElementById('settings-courses-notify-list') || document.getElementById('settings-courses-notifications-list');
     if (courseListEl) {
         if (!appState.courses || appState.courses.length === 0) {
             courseListEl.innerHTML = '<p class="text-xs text-google-gray py-2 italic">Курсы еще не добавлены</p>';
@@ -236,6 +259,127 @@ function renderSettingsView() {
         }
     }
 }
+
+/**
+ * Dispatch an in-app notification respecting user settings.
+ * @param {Object} options
+ * @param {string} options.type - 'assignment' | 'grade' | 'submission' | 'comment_post' | 'comment_private' | 'test'
+ * @param {string} [options.title]
+ * @param {string} [options.text]
+ * @param {string} [options.courseId]
+ * @param {string} [options.assignmentId]
+ * @param {string} [options.targetUserId] - if specified, only this user receives it
+ * @param {boolean} [options.silent] - if true, don't show toast popup
+ */
+window.dispatchNotification = function(options) {
+    if (isGuestUser()) {
+        console.log('[Notification] Skipped: Guest mode');
+        return false;
+    }
+
+    const currentUser = getCurrentUser();
+    if (options.targetUserId && currentUser && currentUser.id !== options.targetUserId) {
+        return false;
+    }
+
+    const settings = appState.userSettings || DEFAULT_STATE.userSettings;
+
+    // 1. Check Master switch
+    if (settings.master === false) {
+        console.log('[Notification] Blocked by Master Notification Switch');
+        return false;
+    }
+
+    // 2. Check Course-specific switch if courseId is present
+    if (options.courseId && settings.courseSpecific && settings.courseSpecific[options.courseId] === false) {
+        console.log(`[Notification] Blocked for course ${options.courseId}`);
+        return false;
+    }
+
+    // 3. Check Type-specific switch
+    switch (options.type) {
+        case 'assignment':
+            if (settings.studentAssignments === false) return false;
+            break;
+        case 'grade':
+            if (settings.studentGrades === false) return false;
+            break;
+        case 'submission':
+            if (settings.teacherSubmissions === false) return false;
+            break;
+        case 'comment_post':
+            if (settings.commentsPost === false) return false;
+            break;
+        case 'comment_private':
+            if (settings.commentsPrivate === false) return false;
+            break;
+        case 'reminder':
+            if (settings.studentReminders === false) return false;
+            break;
+        case 'late':
+            if (settings.teacherLate === false) return false;
+            break;
+        case 'test':
+            // Allowed if master is enabled
+            break;
+        default:
+            break;
+    }
+
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+    const newNotif = {
+        id: 'notif_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        title: options.title || 'Уведомление',
+        text: options.text || '',
+        time: timeFormatted,
+        timestamp: Date.now(),
+        read: false,
+        type: options.type || 'assignment',
+        courseId: options.courseId || null,
+        assignmentId: options.assignmentId || null
+    };
+
+    if (!Array.isArray(appState.inAppNotifications)) {
+        appState.inAppNotifications = [];
+    }
+
+    // Keep max 30 notifications in memory
+    appState.inAppNotifications.unshift(newNotif);
+    if (appState.inAppNotifications.length > 30) {
+        appState.inAppNotifications = appState.inAppNotifications.slice(0, 30);
+    }
+
+    persistState();
+    renderHeaderNotifications();
+
+    if (!options.silent) {
+        triggerToast(options.title + (options.text ? ': ' + options.text : ''));
+    }
+
+    return true;
+};
+
+window.testNotification = function() {
+    if (isGuestUser()) {
+        triggerToast('В гостевом режиме уведомления отключены. Войдите через Google.', true);
+        return;
+    }
+    const settings = appState.userSettings || DEFAULT_STATE.userSettings;
+    if (settings.master === false) {
+        triggerToast('Главный переключатель уведомлений выключен в Настройках!', true);
+        return;
+    }
+    const success = window.dispatchNotification({
+        type: 'test',
+        title: 'Тестовое уведомление',
+        text: 'Система уведомлений Classroom успешно настроена и работает!'
+    });
+    if (success) {
+        triggerToast('Тестовое уведомление создано! Проверьте колокольчик в шапке.');
+    }
+};
 
 window.toggleNotificationSetting = function(key, val) {
     if (!appState.userSettings) appState.userSettings = Object.assign({}, DEFAULT_STATE.userSettings);

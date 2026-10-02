@@ -1173,11 +1173,17 @@
                             </h2>
                             <p class="text-xs text-google-gray dark:text-gray-400">Получать оповещения по электронной почте и в интерфейсе</p>
                         </div>
-                        <!-- Master Switch -->
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="setting-notify-master" onchange="toggleNotificationSetting('master', this.checked)" class="sr-only peer" checked>
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-google-blue"></div>
-                        </label>
+                        <div class="flex items-center space-x-3">
+                            <button type="button" onclick="testNotification()" class="px-3 py-1.5 text-xs font-medium text-google-blue dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 rounded-xl transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                <span>Проверить уведомление</span>
+                            </button>
+                            <!-- Master Switch -->
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="setting-notify-master" onchange="toggleNotificationSetting('master', this.checked)" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-google-blue"></div>
+                            </label>
+                        </div>
                     </div>
 
                     <div id="settings-notifications-subsections" class="space-y-6">
@@ -2047,11 +2053,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.17"></script>
-    <script src="js/notifications.js?v=2.0.17"></script>
-    <script src="js/auth.js?v=2.0.17"></script>
-    <script src="js/courses.js?v=2.0.17"></script>
-    <script src="js/assignments.js?v=2.0.17"></script>
-    <script src="js/app.js?v=2.0.17"></script>
+    <script src="js/state.js?v=2.0.18"></script>
+    <script src="js/notifications.js?v=2.0.18"></script>
+    <script src="js/auth.js?v=2.0.18"></script>
+    <script src="js/courses.js?v=2.0.18"></script>
+    <script src="js/assignments.js?v=2.0.18"></script>
+    <script src="js/app.js?v=2.0.18"></script>
 </body>
 </html>
