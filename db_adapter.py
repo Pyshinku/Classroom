@@ -115,6 +115,7 @@ def init_db():
                     gradient TEXT,
                     banner TEXT,
                     teacher_id TEXT,
+                    is_archived INTEGER DEFAULT 0,
                     created_at INTEGER,
                     updated_at INTEGER
                 )
@@ -256,6 +257,11 @@ def init_db():
                 )
                 """)
 
+                try:
+                    conn.execute("ALTER TABLE courses ADD COLUMN is_archived INTEGER DEFAULT 0")
+                except Exception:
+                    pass
+
                 cur = conn.execute("SELECT value FROM server_meta WHERE key = 'lastUpdate'")
                 if not cur.fetchone():
                     ts = get_now_ms()
@@ -339,6 +345,7 @@ def build_full_payload():
                     "gradient": doc.get("gradient", "from-blue-600 to-indigo-700"),
                     "banner": doc.get("banner", ""),
                     "teacherId": doc.get("teacherId", ""),
+                    "isArchived": bool(doc.get("isArchived", False)),
                     "coTeacherIds": doc.get("coTeacherIds", []),
                     "studentIds": doc.get("studentIds", [])
                 })
@@ -460,6 +467,7 @@ def build_full_payload():
                     "gradient": r['gradient'] or 'from-blue-600 to-indigo-700',
                     "banner": r['banner'] or '',
                     "teacherId": r['teacher_id'] or '',
+                    "isArchived": bool(r['is_archived']) if 'is_archived' in r.keys() else False,
                     "coTeacherIds": co_teacher_ids,
                     "studentIds": student_ids
                 })
@@ -722,6 +730,7 @@ def create_course(course):
     course['id'] = cid
     course['createdAt'] = now_ms
     course['updatedAt'] = now_ms
+    course['isArchived'] = bool(course.get('isArchived', False))
     course.setdefault('coTeacherIds', [])
     course.setdefault('studentIds', [])
 
@@ -736,11 +745,11 @@ def create_course(course):
         try:
             with conn:
                 conn.execute("""
-                INSERT INTO courses (id, name, section, subject, description, code, gradient, banner, teacher_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO courses (id, name, section, subject, description, code, gradient, banner, teacher_id, is_archived, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (cid, course.get('name'), course.get('section', ''), course.get('subject', ''),
                       course.get('description', ''), course.get('code'), course.get('gradient', 'from-blue-600 to-indigo-700'),
-                      course.get('banner', ''), course.get('teacherId', ''), now_ms, now_ms))
+                      course.get('banner', ''), course.get('teacherId', ''), 1 if course.get('isArchived') else 0, now_ms, now_ms))
                 if course.get('teacherId'):
                     conn.execute("INSERT OR REPLACE INTO course_members (course_id, user_id, role) VALUES (?, ?, 'teacher')",
                                  (cid, course.get('teacherId')))
@@ -766,13 +775,21 @@ def update_course(cid, updates):
             row = cur.fetchone()
             if not row:
                 return False
+
+            is_archived_val = updates.get('isArchived')
+            if is_archived_val is None:
+                is_archived_val = row['is_archived'] if 'is_archived' in row.keys() else 0
+            else:
+                is_archived_val = 1 if is_archived_val else 0
+
             with conn:
                 conn.execute("""
-                UPDATE courses SET name = ?, section = ?, subject = ?, description = ?, gradient = ?, banner = ?, updated_at = ?
+                UPDATE courses SET name = ?, section = ?, subject = ?, description = ?, gradient = ?, banner = ?, is_archived = ?, updated_at = ?
                 WHERE id = ?
                 """, (updates.get('name', row['name']), updates.get('section', row['section']),
                       updates.get('subject', row['subject']), updates.get('description', row['description']),
-                      updates.get('gradient', row['gradient']), updates.get('banner', row['banner']), now_ms, cid))
+                      updates.get('gradient', row['gradient']), updates.get('banner', row['banner']),
+                      is_archived_val, now_ms, cid))
             touch_last_update()
             return True
         finally:

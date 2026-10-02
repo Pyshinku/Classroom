@@ -16,7 +16,7 @@ function renderClassworkTab(course) {
             <div class="p-12 text-center text-google-gray space-y-2">
                 <i class="fa-solid fa-clipboard-question text-3xl opacity-40"></i>
                 <p class="text-sm font-medium text-gray-800 dark:text-gray-200">В этом курсе пока нет заданий</p>
-                ${isTeacher ? `
+                ${isTeacher && !course.isArchived ? `
                     <button onclick="window.navigateTo('create-assignment', '${course.id}')" class="mt-2 px-5 py-2 rounded-2xl bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold shadow transition">
                         Создать первое задание
                     </button>
@@ -56,7 +56,7 @@ function renderClassworkTab(course) {
                 </div>
                 <div class="flex items-center space-x-3 shrink-0 ml-3">
                     ${statusBadge}
-                    ${isTeacher ? `
+                    ${isTeacher && !course.isArchived ? `
                         <button onclick="event.stopPropagation(); window.navigateTo('edit-assignment', '${course.id}', '${a.id}')" class="p-2 text-google-gray hover:text-google-blue transition" title="Редактировать">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
@@ -73,6 +73,12 @@ function renderClassworkTab(course) {
 // Full-Page Workspace for Creating & Editing Assignments (Req 4, Req 5)
 function initCreateAssignmentView(course, editAssign = null) {
     if (!course) return;
+
+    if (course.isArchived) {
+        triggerToast('Этот курс находится в архиве. Создание и редактирование заданий заблокировано.', true);
+        window.navigateTo('course', course.id);
+        return;
+    }
 
     const user = getCurrentUser();
     if (!isCourseTeacher(course, user)) {
@@ -382,6 +388,11 @@ window.deleteAssignment = async function(assignId, courseId) {
 window.saveStudentGrade = async function(assignId, studentId, gradeVal) {
     const assign = (appState.assignments || []).find(a => a.id === assignId);
     if (!assign) return;
+    const course = (appState.courses || []).find(c => c.id === assign.courseId);
+    if (course && course.isArchived) {
+        triggerToast('Курс заархивирован: выставление оценок заблокировано');
+        return;
+    }
     if (!assign.submissions) assign.submissions = {};
     if (!assign.submissions[studentId]) {
         assign.submissions[studentId] = {
@@ -497,6 +508,26 @@ function initStudentWorkControls(course, assign) {
     const fileInput = document.getElementById('input-student-file-upload');
     const btnSubmit = document.getElementById('assign-btn-submit-work');
     const btnUnsubmit = document.getElementById('assign-btn-unsubmit-work');
+
+    if (course.isArchived) {
+        if (btnAdd) btnAdd.classList.add('hidden');
+        if (dropdown) dropdown.classList.add('hidden');
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.className = "w-full py-2.5 bg-gray-100 dark:bg-gray-800 text-google-gray text-xs font-bold rounded-full cursor-not-allowed flex items-center justify-center space-x-2";
+            btnSubmit.innerHTML = '<i class="fa-solid fa-lock text-xs"></i><span>Курс заархивирован: сдача работ закрыта</span>';
+        }
+        if (btnUnsubmit) btnUnsubmit.classList.add('hidden');
+        renderStudentPendingAttachments();
+        return;
+    } else {
+        if (btnAdd) btnAdd.classList.remove('hidden');
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.className = "w-full py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-bold rounded-full shadow-md transition flex items-center justify-center space-x-2";
+            btnSubmit.innerHTML = '<i class="fa-solid fa-check text-xs"></i><span id="assign-btn-submit-label">Сдать работу</span>';
+        }
+    }
 
     // Dropdown toggle
     if (btnAdd && dropdown) {
@@ -658,8 +689,8 @@ function renderFullAssignmentWorkspace(course, assign) {
     // Edit button (for teacher only)
     const editBtn = document.getElementById('btn-edit-current-assignment');
     if (editBtn) {
-        editBtn.classList.toggle('hidden', !isTeacher);
-        if (isTeacher) {
+        editBtn.classList.toggle('hidden', !isTeacher || course.isArchived);
+        if (isTeacher && !course.isArchived) {
             editBtn.onclick = () => window.navigateTo('edit-assignment', course.id, assign.id);
         }
     }
@@ -770,7 +801,7 @@ function renderFullAssignmentWorkspace(course, assign) {
                                 <button type="button" onclick="openTeacherPrivateChat('${assign.id}', '${st.id}', '${st.name.replace(/'/g, "\\'")}')" class="p-2 rounded-xl border border-google-border dark:border-google-darkBorder hover:bg-blue-50 dark:hover:bg-blue-950/60 text-google-blue transition" title="Личные комментарии с этим студентом">
                                     <i class="fa-solid fa-comment-dots text-xs"></i>
                                 </button>
-                                <input type="number" min="0" max="${assign.points || 100}" value="${gradeVal}" placeholder="Балл" onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-google-blue">
+                                <input type="number" min="0" max="${assign.points || 100}" value="${gradeVal}" placeholder="Балл" ${course.isArchived ? 'disabled' : ''} onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-google-blue ${course.isArchived ? 'opacity-60 cursor-not-allowed' : ''}">
                             </div>
                         </div>
                     `;
@@ -863,6 +894,22 @@ function renderAssignmentPublicComments(assign) {
 function initAssignmentPublicComments(course, assign) {
     const input = document.getElementById('input-assign-public-comment');
     const sendBtn = document.getElementById('btn-send-assign-public-comment');
+
+    if (course && course.isArchived) {
+        if (input) {
+            input.disabled = true;
+            input.placeholder = "Курс заархивирован: комментарии отключены";
+        }
+        if (sendBtn) sendBtn.disabled = true;
+        renderAssignmentPublicComments(assign);
+        return;
+    }
+
+    if (input) {
+        input.disabled = false;
+        input.placeholder = "Добавьте комментарий курса...";
+    }
+    if (sendBtn) sendBtn.disabled = false;
 
     const handleSend = async () => {
         if (!input) return;
@@ -961,6 +1008,22 @@ function initStudentPrivateComments(course, assign) {
     const input = document.getElementById('input-assign-private-comment');
     const sendBtn = document.getElementById('btn-send-assign-private-comment');
 
+    if (course && course.isArchived) {
+        if (input) {
+            input.disabled = true;
+            input.placeholder = "Курс заархивирован: личные комментарии отключены";
+        }
+        if (sendBtn) sendBtn.disabled = true;
+        renderStudentPrivateComments(assign, studentId);
+        return;
+    }
+
+    if (input) {
+        input.disabled = false;
+        input.placeholder = "Личный комментарий...";
+    }
+    if (sendBtn) sendBtn.disabled = false;
+
     const handleSendPrivate = async () => {
         if (!input) return;
         const textVal = (input.value || '').trim();
@@ -1028,6 +1091,10 @@ window.openTeacherPrivateChat = function(assignId, studentId, studentName) {
     currentTeacherChat.assignId = assignId;
     currentTeacherChat.studentId = studentId;
 
+    const assign = (appState.assignments || []).find(a => a.id === assignId);
+    const course = assign ? (appState.courses || []).find(c => c.id === assign.courseId) : null;
+    const isArchived = Boolean(course && course.isArchived);
+
     const modal = document.getElementById('modal-teacher-private-chat');
     const titleEl = document.getElementById('teacher-chat-student-name');
     if (titleEl) titleEl.textContent = `Личные комментарии: ${studentName}`;
@@ -1037,6 +1104,21 @@ window.openTeacherPrivateChat = function(assignId, studentId, studentName) {
 
     const input = document.getElementById('input-teacher-chat-comment');
     const sendBtn = document.getElementById('btn-send-teacher-chat-comment');
+
+    if (isArchived) {
+        if (input) {
+            input.disabled = true;
+            input.placeholder = "Курс заархивирован: отправка сообщений отключена";
+        }
+        if (sendBtn) sendBtn.disabled = true;
+        return;
+    }
+
+    if (input) {
+        input.disabled = false;
+        input.placeholder = "Ответить студенту...";
+    }
+    if (sendBtn) sendBtn.disabled = false;
 
     const handleSendTeacherComment = async () => {
         if (!input) return;

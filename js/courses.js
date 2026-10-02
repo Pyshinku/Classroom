@@ -280,6 +280,25 @@ function renderCurrentCourseView(course) {
         settingsBtn.onclick = () => openCourseSettingsModal(course);
     }
 
+    // Course Archived Warning Banner
+    const archivedBanner = document.getElementById('course-archived-banner');
+    const restoreBtnContainer = document.getElementById('course-archived-restore-btn-container');
+    if (archivedBanner) {
+        archivedBanner.classList.toggle('hidden', !course.isArchived);
+        if (restoreBtnContainer) {
+            if (course.isArchived && isTeacher) {
+                restoreBtnContainer.innerHTML = `
+                    <button onclick="window.restoreCourse('${course.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-rotate-left text-xs"></i>
+                        <span>Восстановить курс</span>
+                    </button>
+                `;
+            } else {
+                restoreBtnContainer.innerHTML = '';
+            }
+        }
+    }
+
     // Teacher vs Student Tab controls
     const gradesTab = document.getElementById('tab-btn-grades');
     const gradesMobileTab = document.getElementById('tab-btn-grades-mobile');
@@ -288,8 +307,14 @@ function renderCurrentCourseView(course) {
     if (gradesTab) gradesTab.classList.toggle('hidden', !isTeacher);
     if (gradesMobileTab) gradesMobileTab.classList.toggle('hidden', !isTeacher);
     if (createAssignBtn) {
-        createAssignBtn.classList.toggle('hidden', !isTeacher);
-        createAssignBtn.onclick = () => window.navigateTo('create-assignment', course.id);
+        createAssignBtn.classList.toggle('hidden', !isTeacher || Boolean(course.isArchived));
+        createAssignBtn.onclick = () => {
+            if (course.isArchived) {
+                triggerToast('Курс заархивирован: создание заданий заблокировано', true);
+                return;
+            }
+            window.navigateTo('create-assignment', course.id);
+        };
     }
 
     // Left sidebar meta cards
@@ -481,7 +506,7 @@ function initAnnouncementBox(course) {
     const box = document.getElementById('announcement-collapsed')?.parentElement;
     if (!box) return;
 
-    if (!isTeacher) {
+    if (!isTeacher || Boolean(course.isArchived)) {
         box.classList.add('hidden');
         return;
     }
@@ -698,12 +723,19 @@ function renderStreamTab(course) {
                 <!-- Comments Section -->
                 <div class="border-t border-google-border dark:border-google-darkBorder pt-3 space-y-2">
                     ${commentsHtml}
-                    <div class="flex items-center space-x-2 pt-2">
-                        <input id="ann-comm-input-${a.id}" type="text" placeholder="Добавьте комментарий к записи..." class="flex-1 px-3.5 py-2 rounded-xl border border-google-border dark:border-google-darkBorder bg-gray-50 dark:bg-gray-800 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
-                        <button onclick="sendAnnouncementComment('${a.id}')" class="px-3.5 py-2 rounded-xl bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold shadow transition">
-                            Отправить
-                        </button>
-                    </div>
+                    ${course.isArchived ? `
+                        <div class="text-[11px] text-google-gray italic py-1.5 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-lock text-[10px]"></i>
+                            <span>Курс заархивирован: комментарии к записи отключены</span>
+                        </div>
+                    ` : `
+                        <div class="flex items-center space-x-2 pt-2">
+                            <input id="ann-comm-input-${a.id}" type="text" placeholder="Добавьте комментарий к записи..." class="flex-1 px-3.5 py-2 rounded-xl border border-google-border dark:border-google-darkBorder bg-gray-50 dark:bg-gray-800 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                            <button onclick="sendAnnouncementComment('${a.id}')" class="px-3.5 py-2 rounded-xl bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold shadow transition">
+                                Отправить
+                            </button>
+                        </div>
+                    `}
                 </div>
             </div>
         `;
@@ -711,6 +743,12 @@ function renderStreamTab(course) {
 }
 
 window.sendAnnouncementComment = async function(annId) {
+    const currentCourse = (appState.courses || []).find(c => c.id === appState.currentCourseId);
+    if (currentCourse && currentCourse.isArchived) {
+        triggerToast('Курс заархивирован: добавление комментариев заблокировано', true);
+        return;
+    }
+
     const input = document.getElementById(`ann-comm-input-${annId}`);
     if (!input || !input.value.trim()) return;
 
@@ -849,7 +887,7 @@ function renderGradesTab(course) {
                 const gradeVal = submission && submission.grade !== undefined ? submission.grade : '';
                 return `
                     <td class="p-3 text-center border-l border-google-border dark:border-google-darkBorder">
-                        <input type="number" value="${gradeVal}" min="0" max="${a.points}" onchange="saveStudentGrade('${a.id}', '${st.id}', this.value)" class="w-16 text-center py-1 rounded-lg border border-google-border dark:border-google-darkBorder bg-gray-50 dark:bg-gray-800 text-xs font-bold focus:ring-2 focus:ring-google-blue">
+                        <input type="number" value="${gradeVal}" min="0" max="${a.points}" ${course.isArchived ? 'disabled' : ''} onchange="saveStudentGrade('${a.id}', '${st.id}', this.value)" class="w-16 text-center py-1 rounded-lg border border-google-border dark:border-google-darkBorder bg-gray-50 dark:bg-gray-800 text-xs font-bold focus:ring-2 focus:ring-google-blue ${course.isArchived ? 'opacity-60 cursor-not-allowed' : ''}">
                     </td>
                 `;
             }).join('');
@@ -872,6 +910,11 @@ function renderGradesTab(course) {
 window.saveStudentGrade = async function(assignId, studentId, grade) {
     const assign = (appState.assignments || []).find(a => a.id === assignId);
     if (!assign) return;
+    const course = (appState.courses || []).find(c => c.id === assign.courseId);
+    if (course && course.isArchived) {
+        triggerToast('Курс заархивирован: выставление оценок заблокировано');
+        return;
+    }
     if (!assign.submissions) assign.submissions = {};
     if (!assign.submissions[studentId]) {
         assign.submissions[studentId] = { answer: '', link: '', attachments: [], submittedAt: 'Без сдачи' };
