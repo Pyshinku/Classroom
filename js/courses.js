@@ -76,8 +76,8 @@ function renderSidebar() {
     const user = getCurrentUser();
     const isGuest = isGuestUser();
 
-    const teachingCourses = (appState.courses || []).filter(c => isCourseTeacher(c, user));
-    const enrolledCourses = (appState.courses || []).filter(c => (c.studentIds || []).includes(user.id));
+    const teachingCourses = (appState.courses || []).filter(c => !c.isArchived && isCourseTeacher(c, user));
+    const enrolledCourses = (appState.courses || []).filter(c => !c.isArchived && (c.studentIds || []).includes(user.id));
 
     const teachingSec = document.getElementById('sidebar-section-teaching');
     const enrolledSec = document.getElementById('sidebar-section-enrolled');
@@ -111,7 +111,7 @@ function renderDashboard() {
     const searchInput = document.getElementById('input-global-search');
     const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
 
-    let allCourses = appState.courses || [];
+    let allCourses = (appState.courses || []).filter(c => !c.isArchived);
     if (searchQuery) {
         allCourses = allCourses.filter(c => (c.name || '').toLowerCase().includes(searchQuery) || (c.code || '').toLowerCase().includes(searchQuery) || (c.subject || '').toLowerCase().includes(searchQuery));
     }
@@ -162,6 +162,7 @@ function renderDashboard() {
     container.innerHTML = allCourses.map(course => {
         const teacher = (appState.accounts || []).find(a => a.id === course.teacherId) || { name: 'Преподаватель курса' };
         const isMember = (course.studentIds || []).includes(user.id) || isCourseTeacher(course, user);
+        const canArchive = isCourseTeacher(course, user);
 
         return `
             <div onclick="if(isGuestUser()){ triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true); triggerGoogleSignIn(); return; } window.navigateTo('course', '${course.id}')" class="group bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1">
@@ -182,8 +183,8 @@ function renderDashboard() {
                             </span>
                         </div>
                         <div class="relative z-10">
-                            <h3 class="text-base font-bold text-white tracking-tight line-clamp-1 group-hover:underline">${course.name}</h3>
-                            <p class="text-xs text-white/80 line-clamp-1 mt-0.5">${course.section || 'Основной раздел'}</p>
+                            <h3 class="text-base font-bold text-white tracking-tight line-clamp-1 group-hover:underline">${escapeHtml(course.name)}</h3>
+                            <p class="text-xs text-white/80 line-clamp-1 mt-0.5">${escapeHtml(course.section || 'Основной раздел')}</p>
                         </div>
                     </div>
 
@@ -194,7 +195,7 @@ function renderDashboard() {
                                 <i class="fa-solid fa-chalkboard-user text-[11px] text-google-blue"></i>
                                 <span>Преподаватель:</span>
                             </span>
-                            <span class="font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[130px]">${teacher.name}</span>
+                            <span class="font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[130px]">${escapeHtml(teacher.name)}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="flex items-center space-x-1.5">
@@ -211,9 +212,17 @@ function renderDashboard() {
                     <span class="font-mono text-[11px] font-bold bg-white dark:bg-gray-700 px-2.5 py-0.5 rounded-lg border border-google-border dark:border-google-darkBorder tracking-wider">
                         ${course.code}
                     </span>
-                    <div class="flex items-center space-x-1.5 text-google-blue font-medium text-xs group-hover:translate-x-0.5 transition-transform">
-                        <span>Перейти</span>
-                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    <div class="flex items-center space-x-2">
+                        ${canArchive ? `
+                            <button onclick="event.stopPropagation(); window.quickArchiveCourse('${course.id}')" title="Архивировать курс" class="p-1.5 px-2.5 rounded-lg text-google-gray hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-xs transition flex items-center space-x-1">
+                                <i class="fa-solid fa-box-archive text-[11px]"></i>
+                                <span class="hidden sm:inline text-[11px]">В архив</span>
+                            </button>
+                        ` : ''}
+                        <div class="flex items-center space-x-1.5 text-google-blue font-medium text-xs group-hover:translate-x-0.5 transition-transform">
+                            <span>Перейти</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -423,6 +432,18 @@ function openCourseSettingsModal(course) {
             triggerToast('Курс успешно обновлен!');
 
             await sendServerAction('/api/courses/update', updatedCourse);
+        };
+    }
+
+    // Archive button for creator/teacher
+    const btnArchive = document.getElementById('btn-archive-current-course');
+    const archiveBox = document.getElementById('course-settings-archive-box');
+    const isTeacher = isCourseTeacher(course, getCurrentUser());
+    if (archiveBox) archiveBox.classList.toggle('hidden', !isTeacher);
+    if (btnArchive) {
+        btnArchive.onclick = async () => {
+            modal.classList.add('hidden');
+            await window.quickArchiveCourse(course.id);
         };
     }
 
@@ -895,4 +916,183 @@ window.joinCourseDirectly = async function(code) {
     renderDashboard();
     window.navigateTo('course', course.id);
     triggerToast(`Вы успешно записались на курс "${course.name}"!`);
+};
+
+// ----------------- ARCHIVED COURSES ENGINE (STAGE 3) -----------------
+
+window.quickArchiveCourse = async function(courseId) {
+    const user = getCurrentUser();
+    const course = (appState.courses || []).find(c => c.id === courseId);
+    if (!course) return;
+
+    if (!isCourseTeacher(course, user)) {
+        triggerToast('Только преподаватель или создатель курса может архивировать его', true);
+        return;
+    }
+
+    if (!confirm(`Архивировать курс «${course.name}»?\n\nПреподаватели и учащиеся больше не смогут вносить изменения. Курс будет перемещен в раздел «Архив курсов».`)) {
+        return;
+    }
+
+    course.isArchived = true;
+    persistState();
+    renderSidebar();
+    renderDashboard();
+    if (appState.currentCourseId === courseId) {
+        window.navigateTo('dashboard');
+    }
+    triggerToast(`Курс «${course.name}» перемещен в архив`);
+
+    await sendServerAction('/api/courses/update', course);
+};
+
+window.restoreCourse = async function(courseId) {
+    const user = getCurrentUser();
+    const course = (appState.courses || []).find(c => c.id === courseId);
+    if (!course) return;
+
+    if (!isCourseTeacher(course, user)) {
+        triggerToast('Только создатель или преподаватель может восстановить курс', true);
+        return;
+    }
+
+    course.isArchived = false;
+    persistState();
+    renderSidebar();
+    renderDashboard();
+    if (typeof window.renderArchivedCoursesView === 'function') {
+        window.renderArchivedCoursesView();
+    }
+    triggerToast(`Курс «${course.name}» успешно восстановлен`);
+
+    await sendServerAction('/api/courses/update', course);
+};
+
+window.deleteArchivedCourse = async function(courseId) {
+    const user = getCurrentUser();
+    const course = (appState.courses || []).find(c => c.id === courseId);
+    if (!course) return;
+
+    if (!isCourseTeacher(course, user)) {
+        triggerToast('Только создатель курса может окончательно удалить его', true);
+        return;
+    }
+
+    if (!confirm(`Окончательно удалить курс «${course.name}»?\n\nВсе задания, материалы, оценки и комментарии будут безвозвратно удалены. Это действие нельзя отменить.`)) {
+        return;
+    }
+
+    appState.courses = (appState.courses || []).filter(c => c.id !== course.id);
+    appState.assignments = (appState.assignments || []).filter(a => a.courseId !== course.id);
+    appState.announcements = (appState.announcements || []).filter(a => a.courseId !== course.id);
+
+    persistState();
+    renderSidebar();
+    renderDashboard();
+    if (typeof window.renderArchivedCoursesView === 'function') {
+        window.renderArchivedCoursesView();
+    }
+    triggerToast(`Курс «${course.name}» окончательно удален`);
+
+    await sendServerAction('/api/courses/delete', { id: course.id });
+};
+
+window.renderArchivedCoursesView = function() {
+    const container = document.getElementById('archived-courses-grid');
+    const countBadge = document.getElementById('archived-courses-count-badge');
+    if (!container) return;
+
+    const user = getCurrentUser();
+
+    const archivedCourses = (appState.courses || []).filter(c => {
+        if (!c.isArchived) return false;
+        return isCourseTeacher(c, user) || (c.studentIds || []).includes(user.id);
+    });
+
+    if (countBadge) countBadge.textContent = archivedCourses.length;
+
+    if (archivedCourses.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full py-16 text-center space-y-4 bg-white dark:bg-google-darkSurface rounded-3xl border border-google-border dark:border-google-darkBorder p-8 shadow-sm">
+                <div class="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-inner">
+                    <i class="fa-solid fa-box-archive text-3xl"></i>
+                </div>
+                <div class="space-y-1.5 max-w-md mx-auto">
+                    <h3 class="font-bold text-gray-800 dark:text-gray-200 text-sm">В архиве пока ничего нет</h3>
+                    <p class="text-xs text-google-gray dark:text-gray-400">Когда вы архивируете завершенные учебные курсы, они будут бережно храниться здесь.</p>
+                </div>
+                <div class="pt-2">
+                    <button onclick="window.navigateTo('dashboard')" class="px-4 py-2 bg-google-blue text-white rounded-xl text-xs font-semibold shadow hover:bg-google-blueDark transition">
+                        Вернуться к курсам
+                    </button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = archivedCourses.map(course => {
+        const teacher = (appState.accounts || []).find(a => a.id === course.teacherId) || { name: 'Преподаватель курса' };
+        const canManage = isCourseTeacher(course, user);
+
+        return `
+            <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between relative group opacity-95 hover:opacity-100 transition">
+                <div>
+                    <!-- Banner -->
+                    <div class="h-28 relative p-4 flex flex-col justify-between overflow-hidden ${course.banner ? 'bg-cover bg-center' : 'bg-gradient-to-tr ' + (course.gradient || 'from-gray-600 to-slate-700')}" style="${course.banner ? `background-image: url('${course.banner}');` : ''}">
+                        <div class="absolute inset-0 bg-black/40 backdrop-blur-[1px] z-0"></div>
+                        <div class="relative z-10 flex items-start justify-between">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/80 text-white shadow-xs tracking-wider flex items-center space-x-1">
+                                <i class="fa-solid fa-box-archive text-[9px]"></i>
+                                <span>В архиве</span>
+                            </span>
+                            <span class="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold flex items-center justify-center border border-white/30">
+                                ${getCourseBadgeLetters(course.name)}
+                            </span>
+                        </div>
+                        <div class="relative z-10">
+                            <h3 class="text-base font-bold text-white tracking-tight line-clamp-1">${escapeHtml(course.name)}</h3>
+                            <p class="text-xs text-white/80 line-clamp-1 mt-0.5">${escapeHtml(course.section || 'Основной раздел')}</p>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-4 space-y-2.5 text-xs text-google-gray">
+                        <div class="flex items-center justify-between">
+                            <span class="flex items-center space-x-1.5">
+                                <i class="fa-solid fa-chalkboard-user text-[11px] text-google-blue"></i>
+                                <span>Преподаватель:</span>
+                            </span>
+                            <span class="font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[130px]">${escapeHtml(teacher.name)}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="flex items-center space-x-1.5">
+                                <i class="fa-solid fa-users text-[11px] text-purple-500"></i>
+                                <span>Студентов:</span>
+                            </span>
+                            <span class="font-semibold text-gray-800 dark:text-gray-100">${(course.studentIds || []).length} чел.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Controls -->
+                <div class="p-3.5 bg-gray-50 dark:bg-gray-800/60 border-t border-google-border dark:border-google-darkBorder flex items-center justify-between text-xs">
+                    ${canManage ? `
+                        <div class="flex items-center space-x-2 w-full justify-between">
+                            <button onclick="window.restoreCourse('${course.id}')" class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5" title="Восстановить курс в активные">
+                                <i class="fa-solid fa-rotate-left text-xs"></i>
+                                <span>Восстановить</span>
+                            </button>
+                            <button onclick="window.deleteArchivedCourse('${course.id}')" class="px-3 py-1.5 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5" title="Окончательно удалить курс">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                <span>Удалить</span>
+                            </button>
+                        </div>
+                    ` : `
+                        <span class="text-[11px] text-google-gray italic">Курс архивирован преподавателем</span>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
 };

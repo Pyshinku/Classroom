@@ -1300,6 +1300,33 @@
                     </div>
                 </div>
             </section>
+
+            <!-- VIEW: ARCHIVED COURSES (STAGE 3) -->
+            <section id="view-archived-courses" class="hidden p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-200">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-google-border dark:border-google-darkBorder">
+                    <div class="flex items-center space-x-3.5">
+                        <button onclick="window.navigateTo('dashboard')" class="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-google-gray dark:text-gray-300 transition" title="Назад к курсам">
+                            <i class="fa-solid fa-arrow-left text-base"></i>
+                        </button>
+                        <div class="w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-box-archive text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                                <span>Архив курсов</span>
+                                <span id="archived-courses-count-badge" class="text-xs px-2.5 py-0.5 rounded-full font-mono bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold">0</span>
+                            </h1>
+                            <p class="text-xs text-google-gray dark:text-gray-400 mt-0.5">Архивированные курсы недоступны для изменений. Создатели могут просмотреть, восстановить или удалить их.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid container for archived courses -->
+                <div id="archived-courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Populated via renderArchivedCoursesView() in js/courses.js -->
+                </div>
+            </section>
     
         </main>
     </div>
@@ -1833,6 +1860,21 @@
                     </label>
                 </div>
 
+                <!-- Archive Course Action for Creators/Teachers -->
+                <div id="course-settings-archive-box" class="pt-3 border-t border-google-border dark:border-google-darkBorder flex items-center justify-between">
+                    <div>
+                        <p class="font-semibold text-amber-600 dark:text-amber-400 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-box-archive text-xs"></i>
+                            <span>Архивировать этот курс</span>
+                        </p>
+                        <p class="text-[11px] text-google-gray dark:text-gray-400">Курс переместится в архив и перестанет отображаться на главной странице</p>
+                    </div>
+                    <button id="btn-archive-current-course" type="button" class="px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-xl text-xs font-semibold transition flex items-center space-x-1.5 shrink-0">
+                        <i class="fa-solid fa-box-archive text-xs"></i>
+                        <span>В архив</span>
+                    </button>
+                </div>
+
                 <!-- Danger Zone: Delete Course -->
                 <div class="pt-3 border-t border-red-100 dark:border-red-950 flex items-center justify-between">
                     <div>
@@ -1992,11 +2034,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.11"></script>
-    <script src="js/notifications.js?v=2.0.11"></script>
-    <script src="js/auth.js?v=2.0.11"></script>
-    <script src="js/courses.js?v=2.0.11"></script>
-    <script src="js/assignments.js?v=2.0.11"></script>
-    <script src="js/app.js?v=2.0.11"></script>
+    <script src="js/state.js?v=2.0.12"></script>
+    <script src="js/notifications.js?v=2.0.12"></script>
+    <script src="js/auth.js?v=2.0.12"></script>
+    <script src="js/courses.js?v=2.0.12"></script>
+    <script src="js/assignments.js?v=2.0.12"></script>
+    <script src="js/app.js?v=2.0.12"></script>
 </body>
 </html>
