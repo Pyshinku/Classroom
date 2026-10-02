@@ -20,16 +20,6 @@ function renderAllViews() {
     syncUserInterface();
     if (typeof renderHeaderNotifications === 'function') renderHeaderNotifications();
 
-    // If currently viewing chats, refresh chats list and active conversation
-    const chatsView = document.getElementById('view-chats');
-    if (chatsView && !chatsView.classList.contains('hidden')) {
-        if (typeof renderChatsList === 'function') renderChatsList();
-        if (appState.activeChatId && typeof renderActiveChatMessages === 'function') {
-            const activeChat = (appState.chats || []).find(c => c.id === appState.activeChatId);
-            if (activeChat) renderActiveChatMessages(activeChat);
-        }
-    }
-
     if (!appState.currentCourseId) {
         renderDashboard();
     } else {
@@ -50,7 +40,6 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
         todo: document.getElementById('view-todo'),
         calendar: document.getElementById('view-calendar'),
         profileSettings: document.getElementById('view-profile-settings'),
-        chats: document.getElementById('view-chats'),
         settings: document.getElementById('view-settings')
     };
 
@@ -281,21 +270,6 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
             viewSections.profileSettings.classList.remove('hidden');
             initProfileSettingsView();
         }
-
-    } else if (viewName === 'chats') {
-        if (isGuestUser()) {
-            triggerToast('В режиме гостя чаты недоступны. Войдите через Google.', true);
-            triggerGoogleSignIn();
-            return;
-        }
-        appState.currentCourseId = null;
-        if (courseTabs) courseTabs.classList.add('hidden');
-        if (mobileTabs) mobileTabs.classList.add('hidden');
-        if (breadcrumbs) breadcrumbs.classList.add('hidden');
-        if (viewSections.chats) {
-            viewSections.chats.classList.remove('hidden');
-            initChatsView();
-        }
     }
 
     persistState();
@@ -408,9 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const navHome = document.getElementById('nav-btn-home');
     if (navHome) navHome.onclick = () => window.navigateTo('dashboard');
-
-    const navChats = document.getElementById('nav-btn-chats');
-    if (navChats) navChats.onclick = () => window.navigateTo('chats');
 
     const navCalendar = document.getElementById('nav-btn-calendar');
     if (navCalendar) navCalendar.onclick = () => window.navigateTo('calendar');

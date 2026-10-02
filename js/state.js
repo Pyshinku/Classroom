@@ -23,9 +23,6 @@ const DEFAULT_STATE = {
     courses: [],
     announcements: [],
     assignments: [],
-    chats: [],
-    chatMessages: [],
-    activeChatId: null,
     lastUpdate: 0,
     userSettings: {
         master: true,
@@ -53,8 +50,6 @@ let appState = (() => {
         state.courses = state.courses || [];
         state.announcements = state.announcements || [];
         state.assignments = state.assignments || [];
-        state.chats = state.chats || [];
-        state.chatMessages = state.chatMessages || [];
         state.userSettings = Object.assign({}, DEFAULT_STATE.userSettings, state.userSettings || {});
         state.inAppNotifications = state.inAppNotifications || [];
 
@@ -87,8 +82,6 @@ let isOnline = false;
 let isSyncing = false;
 let pendingPostAttachments = [];
 let pendingStudentAttachments = [];
-let currentChatFilter = 'all';
-let pendingChatAttachments = [];
 let selectedSettingsBannerImg = '';
 let selectedSettingsBannerGrad = '';
 let selectedBannerImg = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80';
@@ -187,8 +180,6 @@ async function syncWithServer(showFeedback = false) {
             appState.courses = serverDb.courses || [];
             appState.announcements = serverDb.announcements || [];
             appState.assignments = serverDb.assignments || [];
-            appState.chats = serverDb.chats || [];
-            appState.chatMessages = serverDb.chatMessages || [];
             appState.lastUpdate = serverDb.lastUpdate || Date.now();
 
             const savedActiveId = localStorage.getItem('google_classroom_active_account_id');
@@ -244,8 +235,6 @@ async function sendServerAction(endpoint, payload) {
                 appState.courses = result.data.courses || appState.courses;
                 appState.announcements = result.data.announcements || appState.announcements;
                 appState.assignments = result.data.assignments || appState.assignments;
-                appState.chats = result.data.chats || appState.chats;
-                appState.chatMessages = result.data.chatMessages || appState.chatMessages;
                 appState.lastUpdate = result.data.lastUpdate || Date.now();
                 persistState();
                 if (typeof renderAllViews === 'function') renderAllViews();

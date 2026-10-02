@@ -80,7 +80,6 @@ function syncUserInterface() {
     const btnAvatar = document.getElementById('btn-user-avatar');
     const btnRegister = document.getElementById('btn-header-register');
     const guestBadge = document.getElementById('header-guest-badge');
-    const navChats = document.getElementById('nav-btn-chats');
     const navTodo = document.getElementById('nav-btn-todo');
     const btnPlus = document.getElementById('btn-plus-menu');
     const dashGuestBanner = document.getElementById('dash-guest-banner');
@@ -91,9 +90,6 @@ function syncUserInterface() {
         if (btnAvatar) btnAvatar.classList.add('hidden');
         if (btnRegister) btnRegister.classList.remove('hidden');
         if (guestBadge) guestBadge.classList.remove('hidden');
-        
-        // Hide Chats button in guest mode
-        if (navChats) navChats.classList.add('hidden');
         
         // Hide "Список задач" button in guest mode
         if (navTodo) navTodo.classList.add('hidden');
@@ -117,8 +113,7 @@ function syncUserInterface() {
         if (btnRegister) btnRegister.classList.add('hidden');
         if (guestBadge) guestBadge.classList.add('hidden');
         
-        // Show Chats & Todo
-        if (navChats) navChats.classList.remove('hidden');
+        // Show Todo
         if (navTodo) navTodo.classList.remove('hidden');
         if (btnPlus) btnPlus.classList.remove('hidden');
 
