@@ -20,6 +20,16 @@ function renderAllViews() {
     syncUserInterface();
     if (typeof renderHeaderNotifications === 'function') renderHeaderNotifications();
 
+    // If currently viewing chats, refresh chats list and active conversation
+    const chatsView = document.getElementById('view-chats');
+    if (chatsView && !chatsView.classList.contains('hidden')) {
+        if (typeof renderChatsList === 'function') renderChatsList();
+        if (appState.activeChatId && typeof renderActiveChatMessages === 'function') {
+            const activeChat = (appState.chats || []).find(c => c.id === appState.activeChatId);
+            if (activeChat) renderActiveChatMessages(activeChat);
+        }
+    }
+
     if (!appState.currentCourseId) {
         renderDashboard();
     } else {

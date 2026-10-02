@@ -140,7 +140,7 @@ async function syncWithServer(showFeedback = false) {
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
         const res = await fetch(`${getApiBase()}/api/data`, { cache: 'no-store', signal: controller.signal });
         clearTimeout(timeoutId);
         if (res.ok) {
@@ -183,7 +183,7 @@ async function syncWithServer(showFeedback = false) {
 async function sendServerAction(endpoint, payload) {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
         const res = await fetch(`${getApiBase()}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
