@@ -352,6 +352,16 @@ async function saveAssignmentWorkspace() {
             persistState();
             await sendServerAction('/api/assignments/create', newAssign);
             triggerToast('Задание успешно опубликовано для студентов!');
+
+            if (typeof dispatchNotification === 'function') {
+                dispatchNotification({
+                    type: 'assignment',
+                    courseId,
+                    assignmentId: newAssign.id,
+                    title: 'Новое задание опубликовано',
+                    text: `${course ? course.name : 'Курс'}: ${title}`
+                });
+            }
         }
 
         window.navigateTo('course', courseId);
@@ -404,6 +414,18 @@ window.saveStudentGrade = async function(assignId, studentId, gradeVal) {
     assign.submissions[studentId].grade = num;
     persistState();
     triggerToast('Оценка сохранена');
+
+    if (num !== null && typeof dispatchNotification === 'function') {
+        dispatchNotification({
+            type: 'grade',
+            courseId: assign.courseId,
+            assignmentId: assign.id,
+            targetUserId: studentId,
+            title: 'Выставлена оценка за задание',
+            text: `${assign.title}: ${num} / ${assign.points || 100} баллов`
+        });
+    }
+
     await sendServerAction('/api/assignments/grade', {
         assignmentId: assignId,
         studentId,
@@ -609,6 +631,17 @@ function initStudentWorkControls(course, assign) {
             studentPendingAttachments = [];
             persistState();
             triggerToast('Работа успешно сдана!');
+
+            if (typeof dispatchNotification === 'function') {
+                dispatchNotification({
+                    type: 'submission',
+                    courseId: course.id,
+                    assignmentId: assign.id,
+                    targetUserId: course.teacherId,
+                    title: 'Студент сдал работу',
+                    text: `${user.name || 'Студент'} сдал(а) работу по заданию "${assign.title}"`
+                });
+            }
 
             await sendServerAction('/api/assignments/submit', {
                 assignmentId: assign.id,
@@ -941,6 +974,16 @@ function initAssignmentPublicComments(course, assign) {
         renderAssignmentPublicComments(assign);
         triggerToast('Комментарий курса добавлен');
 
+        if (typeof dispatchNotification === 'function') {
+            dispatchNotification({
+                type: 'comment_post',
+                courseId: course.id,
+                assignmentId: assign.id,
+                title: 'Новый комментарий к заданию',
+                text: `${user.name}: "${textVal.length > 40 ? textVal.substring(0, 40) + '...' : textVal}"`
+            });
+        }
+
         await sendServerAction('/api/assignments/comment', {
             assignmentId: assign.id,
             courseId: course.id,
@@ -1058,6 +1101,17 @@ function initStudentPrivateComments(course, assign) {
         renderStudentPrivateComments(assign, studentId);
         triggerToast('Личное сообщение отправлено преподавателю');
 
+        if (typeof dispatchNotification === 'function') {
+            dispatchNotification({
+                type: 'comment_private',
+                courseId: course.id,
+                assignmentId: assign.id,
+                targetUserId: course.teacherId,
+                title: 'Личное сообщение по заданию',
+                text: `${user.name}: "${textVal.length > 40 ? textVal.substring(0, 40) + '...' : textVal}"`
+            });
+        }
+
         await sendServerAction('/api/assignments/private-comment', {
             assignmentId: assign.id,
             studentId,
@@ -1157,6 +1211,17 @@ window.openTeacherPrivateChat = function(assignId, studentId, studentName) {
         input.value = '';
         renderTeacherChatMessages();
         triggerToast('Ответ отправлен студенту');
+
+        if (typeof dispatchNotification === 'function') {
+            dispatchNotification({
+                type: 'comment_private',
+                courseId: assign.courseId,
+                assignmentId: assign.id,
+                targetUserId: currentTeacherChat.studentId,
+                title: 'Ответ преподавателя в задании',
+                text: `${user.name}: "${textVal.length > 40 ? textVal.substring(0, 40) + '...' : textVal}"`
+            });
+        }
 
         await sendServerAction('/api/assignments/private-comment', {
             assignmentId: assign.id,

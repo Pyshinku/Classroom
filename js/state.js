@@ -202,10 +202,46 @@ async function syncWithServer(showFeedback = false) {
                 }
             });
 
+            const oldAssignments = appState.assignments || [];
+            const newAssignments = serverDb.assignments || [];
+
+            // Detect new assignments or newly graded work for current user
+            const currentUserId = appState.activeAccountId;
+            if (currentUserId && oldAssignments.length > 0 && typeof dispatchNotification === 'function') {
+                newAssignments.forEach(na => {
+                    const exists = oldAssignments.some(oa => oa.id === na.id);
+                    if (!exists) {
+                        const c = (serverDb.courses || []).find(course => course.id === na.courseId);
+                        dispatchNotification({
+                            type: 'assignment',
+                            courseId: na.courseId,
+                            assignmentId: na.id,
+                            title: 'Новое задание в курсе',
+                            text: `${c ? c.name : 'Курс'}: ${na.title}`
+                        });
+                    } else {
+                        // Check if grade was just added for current user
+                        const oldA = oldAssignments.find(oa => oa.id === na.id);
+                        const oldSub = oldA && oldA.submissions && oldA.submissions[currentUserId];
+                        const newSub = na && na.submissions && na.submissions[currentUserId];
+                        if (newSub && newSub.grade !== undefined && newSub.grade !== null && (!oldSub || oldSub.grade === undefined || oldSub.grade === null)) {
+                            dispatchNotification({
+                                type: 'grade',
+                                courseId: na.courseId,
+                                assignmentId: na.id,
+                                targetUserId: currentUserId,
+                                title: 'Выставлена новая оценка',
+                                text: `${na.title}: ${newSub.grade} / ${na.points || 100} баллов`
+                            });
+                        }
+                    }
+                });
+            }
+
             appState.accounts = mergedAccounts;
             appState.courses = serverDb.courses || [];
             appState.announcements = serverDb.announcements || [];
-            appState.assignments = serverDb.assignments || [];
+            appState.assignments = newAssignments;
             appState.lastUpdate = serverDb.lastUpdate || Date.now();
 
             const savedActiveId = localStorage.getItem('google_classroom_active_account_id');

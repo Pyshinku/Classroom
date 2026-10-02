@@ -772,6 +772,16 @@ window.sendAnnouncementComment = async function(annId) {
         ann.comments.push(newComment);
         persistState();
         renderStreamTab(appState.courses.find(c => c.id === appState.currentCourseId));
+
+        if (typeof dispatchNotification === 'function') {
+            dispatchNotification({
+                type: 'comment_post',
+                courseId: ann.courseId,
+                targetUserId: ann.authorId,
+                title: 'Новый комментарий к записи в ленте',
+                text: `${user.name}: "${text.length > 40 ? text.substring(0, 40) + '...' : text}"`
+            });
+        }
     }
 
     await sendServerAction('/api/announcements/comment', newComment);
