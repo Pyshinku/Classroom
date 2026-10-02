@@ -32,6 +32,20 @@ function getCurrentUser() {
     }
     const found = (appState.accounts || []).find(a => a.id === appState.activeAccountId);
     if (found) return found;
+
+    // Try reading cached profile
+    try {
+        const cached = JSON.parse(localStorage.getItem('google_classroom_current_user_profile') || 'null');
+        if (cached && (cached.id === appState.activeAccountId || !appState.activeAccountId)) {
+            if (!appState.accounts) appState.accounts = [];
+            if (!appState.accounts.some(a => a.id === cached.id)) {
+                appState.accounts.push(cached);
+            }
+            appState.activeAccountId = cached.id;
+            return cached;
+        }
+    } catch (e) {}
+
     return {
         id: 'usr_guest',
         name: 'Гость',
@@ -44,7 +58,9 @@ function getCurrentUser() {
 }
 
 function enableGuestMode() {
-    appState.activeAccountId = null;
+    appState.activeAccountId = 'usr_guest';
+    localStorage.setItem('google_classroom_active_account_id', 'usr_guest');
+    localStorage.removeItem('google_classroom_current_user_profile');
     persistState();
     
     // Close user popover if open

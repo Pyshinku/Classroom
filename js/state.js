@@ -47,8 +47,7 @@ const STORAGE_KEY = 'google_classroom_master_v9';
 let appState = (() => {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (!stored) return JSON.parse(JSON.stringify(DEFAULT_STATE));
-        const parsed = JSON.parse(stored);
+        let parsed = stored ? JSON.parse(stored) : {};
         const state = Object.assign({}, DEFAULT_STATE, parsed);
         state.accounts = state.accounts || [];
         state.courses = state.courses || [];
@@ -58,6 +57,26 @@ let appState = (() => {
         state.chatMessages = state.chatMessages || [];
         state.userSettings = Object.assign({}, DEFAULT_STATE.userSettings, state.userSettings || {});
         state.inAppNotifications = state.inAppNotifications || [];
+
+        // Check explicit saved active account
+        const savedActiveId = localStorage.getItem('google_classroom_active_account_id');
+        if (savedActiveId && savedActiveId !== 'usr_guest') {
+            state.activeAccountId = savedActiveId;
+        }
+
+        // Restore cached current user profile if available
+        try {
+            const cachedUser = JSON.parse(localStorage.getItem('google_classroom_current_user_profile') || 'null');
+            if (cachedUser && cachedUser.id) {
+                if (!state.accounts.some(a => a.id === cachedUser.id)) {
+                    state.accounts.push(cachedUser);
+                }
+                if (!state.activeAccountId) {
+                    state.activeAccountId = cachedUser.id;
+                }
+            }
+        } catch (e) {}
+
         return state;
     } catch (e) {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -100,14 +119,20 @@ function persistState() {
             sidebarCollapsed: appState.sidebarCollapsed,
             serverUrl: appState.serverUrl,
             userSettings: appState.userSettings,
+            accounts: (appState.accounts || []).slice(0, 50),
             inAppNotifications: (appState.inAppNotifications || []).slice(0, 30)
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(lightweight));
         localStorage.setItem('google_classroom_server_url', appState.serverUrl);
-        if (appState.activeAccountId) {
+        if (appState.activeAccountId && appState.activeAccountId !== 'usr_guest') {
             localStorage.setItem('google_classroom_active_account_id', appState.activeAccountId);
-        } else {
-            localStorage.removeItem('google_classroom_active_account_id');
+            const currentUser = (appState.accounts || []).find(a => a.id === appState.activeAccountId);
+            if (currentUser) {
+                localStorage.setItem('google_classroom_current_user_profile', JSON.stringify(currentUser));
+            }
+        } else if (appState.activeAccountId === 'usr_guest') {
+            localStorage.setItem('google_classroom_active_account_id', 'usr_guest');
+            localStorage.removeItem('google_classroom_current_user_profile');
         }
     } catch (e) {
         console.warn('Storage quota note', e);
@@ -146,7 +171,19 @@ async function syncWithServer(showFeedback = false) {
         if (res.ok) {
             const serverDb = await res.json();
             
-            appState.accounts = serverDb.accounts || [];
+            const serverAccounts = serverDb.accounts || [];
+            const mergedAccounts = [...serverAccounts];
+            
+            // Merge existing local accounts into server accounts list so we never lose current user
+            (appState.accounts || []).forEach(localAcc => {
+                if (localAcc && localAcc.id && !mergedAccounts.some(sa => sa.id === localAcc.id || (sa.email && localAcc.email && sa.email.toLowerCase() === localAcc.email.toLowerCase()))) {
+                    mergedAccounts.push(localAcc);
+                    // Silently register missing local account on backend
+                    sendServerAction('/api/accounts/register', localAcc).catch(() => {});
+                }
+            });
+
+            appState.accounts = mergedAccounts;
             appState.courses = serverDb.courses || [];
             appState.announcements = serverDb.announcements || [];
             appState.assignments = serverDb.assignments || [];
@@ -155,13 +192,22 @@ async function syncWithServer(showFeedback = false) {
             appState.lastUpdate = serverDb.lastUpdate || Date.now();
 
             const savedActiveId = localStorage.getItem('google_classroom_active_account_id');
-            if (savedActiveId && appState.accounts.some(a => a.id === savedActiveId)) {
-                appState.activeAccountId = savedActiveId;
-            } else if (!appState.accounts.find(a => a.id === appState.activeAccountId)) {
-                // If saved account not found or in guest mode, keep null
-                if (savedActiveId && savedActiveId !== 'usr_guest') {
-                    appState.activeAccountId = null;
+            if (savedActiveId && savedActiveId !== 'usr_guest') {
+                if (appState.accounts.some(a => a.id === savedActiveId)) {
+                    appState.activeAccountId = savedActiveId;
+                } else {
+                    // Try to restore from cached profile
+                    try {
+                        const cachedProfile = JSON.parse(localStorage.getItem('google_classroom_current_user_profile') || 'null');
+                        if (cachedProfile && cachedProfile.id === savedActiveId) {
+                            appState.accounts.push(cachedProfile);
+                            appState.activeAccountId = savedActiveId;
+                            sendServerAction('/api/accounts/register', cachedProfile).catch(() => {});
+                        }
+                    } catch (e) {}
                 }
+            } else if (savedActiveId === 'usr_guest') {
+                appState.activeAccountId = null;
             }
 
             persistState();

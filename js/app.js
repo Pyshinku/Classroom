@@ -621,11 +621,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle OAuth callback if redirecting back from official Google
-    if (typeof checkOAuthCallback === 'function') {
-        checkOAuthCallback();
+    if (typeof checkOAuthCallback === 'function' && window.location.hash && window.location.hash.includes('access_token=')) {
+        checkOAuthCallback().finally(() => {
+            syncWithServer(false);
+            window.navigateTo('dashboard');
+        });
+    } else {
+        // Initial sync & start in dashboard
+        syncWithServer(false);
+        window.navigateTo('dashboard');
     }
-
-    // Initial sync & start in dashboard
-    syncWithServer(false);
-    window.navigateTo('dashboard');
 });
