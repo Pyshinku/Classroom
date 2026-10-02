@@ -370,6 +370,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputServerUrl = document.getElementById('input-custom-server-url');
     if (inputServerUrl) inputServerUrl.value = getApiBase();
 
+    // Server status badge click -> open server network settings modal
+    const btnServerStatus = document.getElementById('btn-server-status');
+    const modalNetwork = document.getElementById('modal-network');
+    if (btnServerStatus && modalNetwork) {
+        btnServerStatus.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (inputServerUrl) inputServerUrl.value = getApiBase();
+            modalNetwork.classList.remove('hidden');
+        });
+    }
+
+    // Save server URL button
+    const btnSaveServerUrl = document.getElementById('btn-save-server-url');
+    if (btnSaveServerUrl) {
+        btnSaveServerUrl.addEventListener('click', async () => {
+            const input = document.getElementById('input-custom-server-url');
+            if (!input) return;
+            let val = input.value.trim().replace(/\/+$/, '');
+            if (!val) val = 'https://classroom-backend-h79h.onrender.com';
+            localStorage.setItem('google_classroom_server_url', val);
+            appState.serverUrl = val;
+            triggerToast(`Адрес сервера сохранён: ${val}`);
+            await syncWithServer(true);
+        });
+    }
+
+    // Server preset buttons
+    const btnPresetRender = document.getElementById('btn-preset-render');
+    if (btnPresetRender) {
+        btnPresetRender.addEventListener('click', () => {
+            if (inputServerUrl) inputServerUrl.value = 'https://classroom-backend-h79h.onrender.com';
+            if (btnSaveServerUrl) btnSaveServerUrl.click();
+        });
+    }
+
+    const btnPresetLocalhost = document.getElementById('btn-preset-localhost');
+    if (btnPresetLocalhost) {
+        btnPresetLocalhost.addEventListener('click', () => {
+            if (inputServerUrl) inputServerUrl.value = 'http://localhost:8000';
+            if (btnSaveServerUrl) btnSaveServerUrl.click();
+        });
+    }
+
     // 1. Sidebar Toggle Buttons & Hover
     const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
     if (btnSidebarToggle) {

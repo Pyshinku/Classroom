@@ -147,6 +147,7 @@ function updateServerBadge(online, serverInfo = null) {
     const dot = document.getElementById('server-status-dot');
     const label = document.getElementById('server-status-label');
     const badge = document.getElementById('btn-server-status');
+    const modalStatus = document.getElementById('network-modal-status');
 
     if (dot && label && badge) {
         if (online) {
@@ -160,6 +161,16 @@ function updateServerBadge(online, serverInfo = null) {
             label.textContent = 'Локально';
         }
     }
+
+    if (modalStatus) {
+        if (online) {
+            modalStatus.textContent = `Подключено к серверу (${getApiBase()})`;
+            modalStatus.className = 'font-semibold text-emerald-600 dark:text-emerald-400 truncate max-w-[260px]';
+        } else {
+            modalStatus.textContent = 'Сервер недоступен (работаем локально)';
+            modalStatus.className = 'font-semibold text-amber-600 dark:text-amber-400';
+        }
+    }
 }
 
 async function syncWithServer(showFeedback = false) {
@@ -168,7 +179,8 @@ async function syncWithServer(showFeedback = false) {
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const timeoutMs = showFeedback ? 35000 : 15000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         const res = await fetch(`${getApiBase()}/api/data`, { cache: 'no-store', signal: controller.signal });
         clearTimeout(timeoutId);
         if (res.ok) {
