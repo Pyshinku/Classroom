@@ -8,10 +8,15 @@ const DEFAULT_STATE = {
     currentAssignmentId: null,
     activeCourseTab: 'stream',
     serverUrl: (function() {
-        if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
-            return window.location.origin;
+        if (typeof window !== 'undefined') {
+            if (window.location.hostname.endsWith('github.io')) {
+                return 'https://classroom-backend-h79h.onrender.com';
+            }
+            if (window.location.protocol.startsWith('http') && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                return window.location.origin;
+            }
         }
-        return localStorage.getItem('google_classroom_server_url') || 'http://localhost:8000';
+        return localStorage.getItem('google_classroom_server_url') || 'https://classroom-backend-h79h.onrender.com';
     })(),
     accounts: [],
     courses: [],
@@ -77,13 +82,13 @@ function getApiBase() {
 
     if (typeof window !== 'undefined') {
         if (window.location.hostname.endsWith('github.io')) {
-            return appState.serverUrl || 'https://classroom-backend.onrender.com';
+            return 'https://classroom-backend-h79h.onrender.com';
         }
         if (window.location.protocol.startsWith('http') && !window.location.hostname.endsWith('github.io')) {
             return window.location.origin;
         }
     }
-    return appState.serverUrl || 'http://localhost:8000';
+    return appState.serverUrl || 'https://classroom-backend-h79h.onrender.com';
 }
 
 function persistState() {
