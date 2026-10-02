@@ -845,6 +845,35 @@ def join_course_by_code(code, user_id):
         finally:
             conn.close()
 
+def add_course_teacher(course_id, teacher_id):
+    if not course_id or not teacher_id:
+        return False, "Параметры не указаны"
+
+    mdb = get_mongo_db()
+    if mdb is not None:
+        course = mdb.courses.find_one({"id": course_id})
+        if not course:
+            return False, "Курс не найден"
+        mdb.courses.update_one({"id": course_id}, {"$addToSet": {"coTeacherIds": teacher_id}})
+        touch_last_update()
+        return True, None
+
+    with db_lock:
+        conn = get_sqlite_conn()
+        try:
+            cur = conn.execute("SELECT * FROM courses WHERE id = ?", (course_id,))
+            row = cur.fetchone()
+            if not row:
+                return False, "Курс не найден"
+            with conn:
+                # Remove from student if was student, and insert as co_teacher
+                conn.execute("DELETE FROM course_members WHERE course_id = ? AND user_id = ?", (course_id, teacher_id))
+                conn.execute("INSERT INTO course_members (course_id, user_id, role) VALUES (?, ?, 'co_teacher')", (course_id, teacher_id))
+            touch_last_update()
+            return True, None
+        finally:
+            conn.close()
+
 def create_announcement(ann):
     now_ms = get_now_ms()
     aid = ann.get('id') or f"ann_{now_ms}"

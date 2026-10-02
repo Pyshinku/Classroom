@@ -219,6 +219,29 @@ class ClassroomRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json(200, { "success": True, "course": course, "data": payload })
             return
 
+        if path == '/api/courses/add-teacher':
+            cid = body.get('courseId')
+            tid = body.get('teacherId')
+            email = (body.get('email') or '').strip().lower()
+            if not tid and email:
+                # Resolve account by email
+                accs = db_adapter.build_full_payload().get('accounts', [])
+                matched = next((a for a in accs if (a.get('email') or '').lower() == email), None)
+                if matched:
+                    tid = matched.get('id')
+
+            if not cid or not tid:
+                self.send_json(400, { "error": "courseId and teacherId or valid registered email required" })
+                return
+
+            ok, err = db_adapter.add_course_teacher(cid, tid)
+            if err:
+                self.send_json(400, { "error": err })
+                return
+            payload = db_adapter.build_full_payload()
+            self.send_json(200, { "success": True, "data": payload })
+            return
+
         # ----------------- ANNOUNCEMENTS -----------------
         if path == '/api/announcements/create':
             ann = db_adapter.create_announcement(body)

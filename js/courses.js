@@ -1014,6 +1014,17 @@ function renderPeopleTab(course) {
         }).join('');
     }
 
+    // Control visibility of "Добавить соуправляющего" button (Item 2)
+    const btnAddTeacher = document.getElementById('btn-open-add-teacher');
+    const user = getCurrentUser();
+    const isTeacher = isCourseTeacher(course, user);
+    if (btnAddTeacher) {
+        btnAddTeacher.classList.toggle('hidden', !isTeacher);
+        if (isTeacher) {
+            btnAddTeacher.onclick = () => openAddTeacherModal(course);
+        }
+    }
+
     // Students list
     const students = (appState.accounts || []).filter(a => (course.studentIds || []).includes(a.id));
     const countEl = document.getElementById('people-students-count');
@@ -1043,7 +1054,7 @@ function renderPeopleTab(course) {
                             <p class="text-[10px] text-google-gray">${s.email || ''}</p>
                         </div>
                     </div>
-                    ${isCourseTeacher(course) ? `
+                    ${isTeacher ? `
                         <button onclick="excludeStudentFromCourse('${course.id}', '${s.id}')" class="text-xs text-red-500 hover:text-red-700 hover:underline">
                             Исключить
                         </button>
@@ -1054,6 +1065,84 @@ function renderPeopleTab(course) {
         }
     }
 }
+
+window.openAddTeacherModal = function(course) {
+    if (!course) return;
+    const modal = document.getElementById('modal-add-course-teacher');
+    const select = document.getElementById('select-add-course-teacher');
+    const inputEmail = document.getElementById('input-add-teacher-email');
+    const btnConfirm = document.getElementById('btn-confirm-add-teacher');
+
+    if (!modal) return;
+    if (inputEmail) inputEmail.value = '';
+
+    const currentTeacherIds = [course.teacherId, ...(course.coTeacherIds || [])];
+    const availableUsers = (appState.accounts || []).filter(a => !currentTeacherIds.includes(a.id));
+
+    if (select) {
+        if (availableUsers.length === 0) {
+            select.innerHTML = '<option value="">Нет других пользователей в системе (введите email ниже)</option>';
+        } else {
+            select.innerHTML = '<option value="">-- Выберите пользователя --</option>' + availableUsers.map(u => `
+                <option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.email || 'без email')})</option>
+            `).join('');
+        }
+    }
+
+    if (btnConfirm) {
+        btnConfirm.onclick = async () => {
+            const selectedId = select ? select.value : '';
+            const emailVal = inputEmail ? inputEmail.value.trim() : '';
+
+            let targetTeacher = null;
+            if (selectedId) {
+                targetTeacher = availableUsers.find(u => u.id === selectedId);
+            } else if (emailVal) {
+                targetTeacher = (appState.accounts || []).find(u => (u.email || '').toLowerCase() === emailVal.toLowerCase()) || {
+                    id: 'usr_' + Date.now(),
+                    name: emailVal.split('@')[0],
+                    email: emailVal,
+                    role: 'teacher'
+                };
+            }
+
+            if (!targetTeacher) {
+                triggerToast('Выберите пользователя или укажите корректный email', true);
+                return;
+            }
+
+            if (!course.coTeacherIds) course.coTeacherIds = [];
+            if (course.coTeacherIds.includes(targetTeacher.id) || course.teacherId === targetTeacher.id) {
+                triggerToast('Этот пользователь уже является преподавателем курса', true);
+                return;
+            }
+
+            course.coTeacherIds.push(targetTeacher.id);
+            // Also remove from studentIds if they were enrolled as student
+            if (course.studentIds) {
+                course.studentIds = course.studentIds.filter(id => id !== targetTeacher.id);
+            }
+            persistState();
+
+            try {
+                await sendServerAction('/api/courses/add-teacher', {
+                    courseId: course.id,
+                    teacherId: targetTeacher.id,
+                    email: targetTeacher.email
+                });
+            } catch (e) {
+                console.warn('add-teacher sync note', e);
+            }
+
+            modal.classList.add('hidden');
+            renderPeopleTab(course);
+            renderSidebar();
+            triggerToast(`Пользователь ${targetTeacher.name} назначен соуправляющим!`);
+        };
+    }
+
+    modal.classList.remove('hidden');
+};
 
 window.excludeStudentFromCourse = async function(courseId, studentId) {
     const course = (appState.courses || []).find(c => c.id === courseId);
