@@ -116,7 +116,10 @@
 
 
             <!-- Dark / Light Mode Switch -->
-            
+            <button id="btn-theme-toggle" aria-label="Сменить тему" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 transition">
+                <span id="theme-icon" class="material-symbols-outlined text-xl">dark_mode</span>
+            </button>
+
             <!-- In-App Notifications Bell (Requirement 8) -->
             <div class="relative">
                 <button id="btn-header-notifications" aria-label="Уведомления" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-google-gray dark:text-gray-300 transition relative">
@@ -135,20 +138,6 @@
                 </div>
             </div>
 
-            <!-- Official Google Sign-In Direct Button -->
-            <button id="btn-header-register" onclick="triggerGoogleSignIn()" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer" title="Войти через официальный аккаунт Google">
-                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
-                <span>Войти через Google</span>
-            </button>
-
-            <!-- Guest Mode Badge (Item 3) -->
-            <span id="header-guest-badge" class="hidden px-2.5 py-1 text-[11px] font-medium bg-gray-100 dark:bg-gray-800 text-google-gray rounded-full">Режим гостя</span>
-
-    
-            <button id="btn-theme-toggle" aria-label="Сменить тему" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 transition">
-                <span id="theme-icon" class="material-symbols-outlined text-xl">dark_mode</span>
-            </button>
-
             <!-- Quick Action (+) Dropdown for Course Create/Join -->
             <div class="relative">
                 <button id="btn-plus-menu" aria-label="Создать или записаться на курс" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 active:scale-95 transition">
@@ -165,6 +154,12 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Official Google Sign-In Direct Button (for guest mode) -->
+            <button id="btn-header-register" onclick="triggerGoogleSignIn()" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer shrink-0 ml-1" title="Войти через официальный аккаунт Google">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
+                <span>Войти через Google</span>
+            </button>
 
             <!-- Multi-User Account Avatar & Dropdown -->
             <div class="relative ml-1">
@@ -2310,11 +2305,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.15"></script>
-    <script src="js/notifications.js?v=2.0.15"></script>
-    <script src="js/auth.js?v=2.0.15"></script>
-    <script src="js/courses.js?v=2.0.15"></script>
-    <script src="js/assignments.js?v=2.0.15"></script>
-    <script src="js/app.js?v=2.0.15"></script>
+    <script src="js/state.js?v=2.0.16"></script>
+    <script src="js/notifications.js?v=2.0.16"></script>
+    <script src="js/auth.js?v=2.0.16"></script>
+    <script src="js/courses.js?v=2.0.16"></script>
+    <script src="js/assignments.js?v=2.0.16"></script>
+    <script src="js/app.js?v=2.0.16"></script>
 </body>
 </html>
