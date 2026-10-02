@@ -1560,25 +1560,31 @@ function renderTodoView() {
     }
 
     const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    const currentTime = now.getTime();
 
     let totalAssigned = 0;
     let totalMissing = 0;
     let totalDone = 0;
 
+    const parseDeadlineTime = (deadlineStr) => {
+        if (!deadlineStr || deadlineStr === 'Без срока') return null;
+        // ISO string YYYY-MM-DD or date with time
+        const isoStr = deadlineStr.includes('T') ? deadlineStr : (deadlineStr + 'T23:59:59');
+        const d = new Date(isoStr);
+        return isNaN(d.getTime()) ? null : d.getTime();
+    };
+
     assigns.forEach(a => {
         const sub = a.submissions && a.submissions[user.id];
-        if (sub) {
+        if (sub && sub.submittedAt) {
             totalDone++;
-        } else if (a.deadline && a.deadline !== 'Без срока') {
-            const dDate = new Date(a.deadline);
-            if (!isNaN(dDate.getTime()) && dDate < now) {
+        } else {
+            const dTime = parseDeadlineTime(a.deadline);
+            if (dTime !== null && dTime < currentTime) {
                 totalMissing++;
             } else {
                 totalAssigned++;
             }
-        } else {
-            totalAssigned++;
         }
     });
 
@@ -1645,8 +1651,8 @@ function renderTodoView() {
                                 <i class="fa-solid fa-clipboard-list text-sm"></i>
                             </div>
                             <div class="truncate">
-                                <h4 class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${item.title}</h4>
-                                <p class="text-[11px] text-google-gray truncate">${course ? course.name : 'Курс'}</p>
+                                <h4 class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${escapeHtml(item.title)}</h4>
+                                <p class="text-[11px] text-google-gray truncate">${course ? escapeHtml(course.name) : 'Курс'}</p>
                             </div>
                         </div>
                         <div class="text-xs text-google-gray shrink-0 text-right">
@@ -1663,7 +1669,13 @@ function renderTodoView() {
     };
 
     if (currentTodoTab === 'assigned') {
-        const assignedList = assigns.filter(a => !(a.submissions && a.submissions[user.id]));
+        const assignedList = assigns.filter(a => {
+            const sub = a.submissions && a.submissions[user.id];
+            if (sub && sub.submittedAt) return false;
+            const dTime = parseDeadlineTime(a.deadline);
+            return dTime === null || dTime >= currentTime;
+        });
+
         const noDeadline = [];
         const thisWeek = [];
         const nextWeek = [];
@@ -1671,23 +1683,17 @@ function renderTodoView() {
         const weekMs = 7 * 86400000;
 
         assignedList.forEach(a => {
-            if (!a.deadline || a.deadline === 'Без срока') {
+            const dTime = parseDeadlineTime(a.deadline);
+            if (dTime === null) {
                 noDeadline.push(a);
             } else {
-                const d = new Date(a.deadline);
-                if (isNaN(d.getTime())) {
-                    noDeadline.push(a);
+                const diff = dTime - currentTime;
+                if (diff <= weekMs) {
+                    thisWeek.push(a);
+                } else if (diff <= weekMs * 2) {
+                    nextWeek.push(a);
                 } else {
-                    const diff = d.getTime() - now.getTime();
-                    if (diff < 0) {
-                        // missed
-                    } else if (diff <= weekMs) {
-                        thisWeek.push(a);
-                    } else if (diff <= weekMs * 2) {
-                        nextWeek.push(a);
-                    } else {
-                        later.push(a);
-                    }
+                    later.push(a);
                 }
             }
         });
@@ -1699,10 +1705,10 @@ function renderTodoView() {
 
     } else if (currentTodoTab === 'missing') {
         const missingList = assigns.filter(a => {
-            if (a.submissions && a.submissions[user.id]) return false;
-            if (!a.deadline || a.deadline === 'Без срока') return false;
-            const d = new Date(a.deadline);
-            return !isNaN(d.getTime()) && d < now;
+            const sub = a.submissions && a.submissions[user.id];
+            if (sub && sub.submittedAt) return false;
+            const dTime = parseDeadlineTime(a.deadline);
+            return dTime !== null && dTime < currentTime;
         });
 
         const weekMs = 7 * 86400000;
@@ -1710,8 +1716,8 @@ function renderTodoView() {
         const earlier = [];
 
         missingList.forEach(a => {
-            const d = new Date(a.deadline);
-            if (now.getTime() - d.getTime() <= weekMs) {
+            const dTime = parseDeadlineTime(a.deadline);
+            if (currentTime - dTime <= weekMs) {
                 lastWeek.push(a);
             } else {
                 earlier.push(a);

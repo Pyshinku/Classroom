@@ -398,10 +398,131 @@ function renderCurrentCourseView(course) {
     }
 
     initAnnouncementBox(course);
+    renderStreamDeadlines(course);
     renderStreamTab(course);
     if (typeof renderClassworkTab === 'function') renderClassworkTab(course);
     renderPeopleTab(course);
     if (isTeacher) renderGradesTab(course);
+}
+
+function renderStreamDeadlines(course) {
+    const container = document.getElementById('stream-deadlines-container');
+    if (!container) return;
+
+    if (!course) {
+        container.innerHTML = '<p class="text-google-gray italic">Курс не найден</p>';
+        return;
+    }
+
+    const user = getCurrentUser();
+    const isTeacher = isCourseTeacher(course, user);
+    const assigns = (appState.assignments || []).filter(a => a.courseId === course.id);
+
+    if (assigns.length === 0) {
+        container.innerHTML = `
+            <div class="py-2 space-y-1">
+                <p class="text-google-gray dark:text-gray-400">В этом курсе пока нет заданий</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (isTeacher) {
+        // Teacher view: show assignments needing attention/grading
+        const pendingGrading = assigns.filter(a => {
+            const subs = a.submissions || {};
+            const unGraded = Object.values(subs).filter(s => s && s.submittedAt && s.grade === undefined);
+            return unGraded.length > 0;
+        });
+
+        if (pendingGrading.length === 0) {
+            container.innerHTML = `
+                <div class="py-1.5 space-y-1 text-google-gray dark:text-gray-400">
+                    <p class="text-emerald-600 dark:text-emerald-400 font-medium flex items-center space-x-1.5">
+                        <i class="fa-solid fa-circle-check text-xs"></i>
+                        <span>Все работы проверены</span>
+                    </p>
+                    <p class="text-[11px]">Нет ожидающих оценки работ</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = pendingGrading.slice(0, 4).map(a => {
+            const subs = a.submissions || {};
+            const count = Object.values(subs).filter(s => s && s.submittedAt && s.grade === undefined).length;
+            return `
+                <div onclick="window.navigateTo('assignment', '${course.id}', '${a.id}')" class="p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer border border-google-border dark:border-google-darkBorder transition group">
+                    <p class="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme truncate">${escapeHtml(a.title)}</p>
+                    <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Ожидают оценки: ${count} чел.</p>
+                </div>
+            `;
+        }).join('');
+        return;
+    }
+
+    // Student view: show pending / unsubmitted assignments sorted by deadline
+    const unsubmitted = assigns.filter(a => {
+        const sub = a.submissions && a.submissions[user.id];
+        return !sub || !sub.submittedAt;
+    });
+
+    if (unsubmitted.length === 0) {
+        container.innerHTML = `
+            <div class="py-1.5 space-y-1 text-google-gray dark:text-gray-400">
+                <p class="text-emerald-600 dark:text-emerald-400 font-medium flex items-center space-x-1.5">
+                    <i class="fa-solid fa-circle-check text-xs"></i>
+                    <span>Все задания сданы!</span>
+                </p>
+                <p class="text-[11px]">На ближайшее время несделанных заданий нет.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    // Sort: earliest deadline first, missing first
+    unsubmitted.sort((a, b) => {
+        if (!a.deadline || a.deadline === 'Без срока') return 1;
+        if (!b.deadline || b.deadline === 'Без срока') return -1;
+        return a.deadline.localeCompare(b.deadline);
+    });
+
+    container.innerHTML = unsubmitted.slice(0, 4).map(a => {
+        let deadlineLabel = 'Без срока сдачи';
+        let badgeColor = 'text-google-gray';
+
+        if (a.deadline && a.deadline !== 'Без срока') {
+            const dDate = new Date(a.deadline + 'T23:59:59');
+            if (!isNaN(dDate.getTime())) {
+                const diffDays = Math.ceil((dDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                if (dDate < now) {
+                    deadlineLabel = `Просрочено: ${a.deadline}`;
+                    badgeColor = 'text-red-500 font-semibold';
+                } else if (diffDays <= 1) {
+                    deadlineLabel = `Сдать сегодня: ${a.deadline}`;
+                    badgeColor = 'text-amber-600 dark:text-amber-400 font-semibold';
+                } else if (diffDays <= 2) {
+                    deadlineLabel = `Сдать завтра: ${a.deadline}`;
+                    badgeColor = 'text-blue-600 dark:text-blue-400 font-medium';
+                } else {
+                    deadlineLabel = `Срок: ${a.deadline}`;
+                    badgeColor = 'text-google-gray dark:text-gray-400';
+                }
+            } else {
+                deadlineLabel = `Срок: ${a.deadline}`;
+            }
+        }
+
+        return `
+            <div onclick="window.navigateTo('assignment', '${course.id}', '${a.id}')" class="p-2.5 rounded-xl hover:bg-blue-50/50 dark:hover:bg-gray-800 cursor-pointer border border-google-border dark:border-google-darkBorder transition group">
+                <p class="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme truncate">${escapeHtml(a.title)}</p>
+                <p class="text-[11px] ${badgeColor} mt-0.5 truncate">${deadlineLabel}</p>
+            </div>
+        `;
+    }).join('');
 }
 
 function openCourseSettingsModal(course) {
