@@ -40,7 +40,8 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
         todo: document.getElementById('view-todo'),
         calendar: document.getElementById('view-calendar'),
         profileSettings: document.getElementById('view-profile-settings'),
-        settings: document.getElementById('view-settings')
+        settings: document.getElementById('view-settings'),
+        archivedCourses: document.getElementById('view-archived-courses')
     };
 
     // Close mobile sidebar
@@ -79,6 +80,19 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
         }
         if (viewSections.dashboard) viewSections.dashboard.classList.remove('hidden');
         renderDashboard();
+
+    } else if (viewName === 'archivedCourses') {
+        appState.currentCourseId = null;
+        appState.currentAssignmentId = null;
+        if (courseTabs) courseTabs.classList.add('hidden');
+        if (mobileTabs) mobileTabs.classList.add('hidden');
+        if (breadcrumbs) breadcrumbs.classList.add('hidden');
+        if (viewSections.archivedCourses) {
+            viewSections.archivedCourses.classList.remove('hidden');
+            if (typeof renderArchivedCoursesView === 'function') {
+                renderArchivedCoursesView();
+            }
+        }
 
     } else if (viewName === 'google-auth') {
         if (typeof triggerGoogleSignIn === 'function') triggerGoogleSignIn();
@@ -458,15 +472,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const btnQuickCreate = document.getElementById('btn-quick-create-course');
-    if (btnQuickCreate) {
-        btnQuickCreate.onclick = () => {
-            if (isGuestUser()) {
-                triggerToast('В режиме гостя нельзя создавать курсы. Войдите через Google.', true);
-                triggerGoogleSignIn();
-                return;
-            }
-            document.getElementById('modal-create-course').classList.remove('hidden');
+    const btnSidebarArchived = document.getElementById('btn-sidebar-archived-courses');
+    if (btnSidebarArchived) {
+        btnSidebarArchived.onclick = () => {
+            window.navigateTo('archivedCourses');
         };
     }
 
