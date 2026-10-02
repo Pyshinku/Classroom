@@ -198,7 +198,7 @@
                     <div>
                         <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-google-gray dark:text-gray-400 px-2 mb-2">
                             <span>Переключить аккаунт</span>
-                            <span class="text-[10px] lowercase text-google-blue font-normal cursor-pointer" onclick="openAuthModal('login')">войти в другой</span>
+                            <span class="text-[10px] lowercase text-google-blue font-normal cursor-pointer hover:underline" onclick="triggerGoogleSignIn()">войти в другой</span>
                         </div>
                         <div id="menu-accounts-list" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
                     </div>
@@ -211,7 +211,7 @@
                         </button>
                         <button id="btn-trigger-add-account" onclick="triggerGoogleSignIn()" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
                             <i class="fa-brands fa-google text-base w-5 text-center text-google-blue"></i>
-                            <span>Войти под другим Google</span>
+                            <span>Добавить / Сменить аккаунт</span>
                         </button>
                         <button id="btn-menu-guest-mode" onclick="enableGuestMode()" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
                             <i class="fa-regular fa-circle-user text-base w-5 text-center"></i>
@@ -1262,8 +1262,9 @@
                             <button onclick="window.navigateTo('profile-settings')" class="px-4 py-2 border border-google-border dark:border-google-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold rounded-xl transition text-gray-700 dark:text-gray-200">
                                 Настроить профиль
                             </button>
-                            <button onclick="window.navigateTo('google-auth')" class="px-4 py-2 bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold rounded-xl shadow transition">
-                                Сменить аккаунт
+                            <button onclick="triggerGoogleSignIn()" class="px-4 py-2 bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-2">
+                                <i class="fa-brands fa-google text-xs"></i>
+                                <span>Сменить аккаунт</span>
                             </button>
                         </div>
                     </div>
