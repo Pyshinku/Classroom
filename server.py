@@ -210,7 +210,7 @@ class ClassroomRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         if path == '/api/courses/join':
             code = body.get('code', '')
-            user_id = body.get('userId', '')
+            user_id = body.get('userId') or body.get('studentId', '')
             course, err = db_adapter.join_course_by_code(code, user_id)
             if err:
                 self.send_json(400, { "error": err })

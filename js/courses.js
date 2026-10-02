@@ -204,7 +204,7 @@ function renderDashboard() {
         const canArchive = isCourseTeacher(course, user);
 
         return `
-            <div onclick="if(isGuestUser()){ triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true); triggerGoogleSignIn(); return; } window.navigateTo('course', '${course.id}')" class="group bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1">
+            <div onclick="if(isGuestUser()){ triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true); triggerGoogleSignIn(); return; } if(!${isMember}){ window.joinCourseDirectly('${course.code}'); } else { window.navigateTo('course', '${course.id}'); }" class="group bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1">
                 <div>
                     <!-- Header Banner -->
                     ${course.banner ? `
@@ -1146,7 +1146,7 @@ function renderGradesTab(course) {
 }
 
 window.joinCourseDirectly = async function(code) {
-    code = code.trim().toUpperCase();
+    code = (code || '').trim().toUpperCase();
     if (!code) {
         triggerToast('Введите код курса', true);
         return;
@@ -1167,14 +1167,23 @@ window.joinCourseDirectly = async function(code) {
 
     if (!course.studentIds) course.studentIds = [];
     if (course.studentIds.includes(user.id)) {
-        triggerToast('Вы уже записаны на этот курс');
         window.navigateTo('course', course.id);
         return;
     }
 
     course.studentIds.push(user.id);
     persistState();
-    await sendServerAction('/api/courses/join', { code, studentId: user.id });
+    
+    try {
+        await sendServerAction('/api/courses/join', { 
+            code, 
+            studentId: user.id, 
+            userId: user.id 
+        });
+    } catch (e) {
+        console.warn('joinCourseDirectly sync warning', e);
+    }
+
     renderSidebar();
     renderDashboard();
     window.navigateTo('course', course.id);
