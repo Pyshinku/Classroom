@@ -42,7 +42,7 @@ function renderHeaderNotifications() {
             <div class="py-8 text-center text-google-gray space-y-2">
                 <i class="fa-regular fa-bell-slash text-3xl opacity-40"></i>
                 <p class="text-xs">В гостевом режиме уведомления отключены</p>
-                <button type="button" onclick="window.navigateTo('google-auth')" class="text-xs text-google-blue font-semibold hover:underline">Войти через Google</button>
+                <button type="button" onclick="triggerGoogleSignIn()" class="text-xs text-google-blue font-semibold hover:underline">Войти через Google</button>
             </div>
         `;
         if (badgeEl) badgeEl.classList.add('hidden');

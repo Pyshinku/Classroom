@@ -1,33 +1,17 @@
-// Google Classroom - Authentication, Google Account Chooser & Guest Mode Engine
+// Google Classroom - Official Google OAuth 2.0, Identity Services & User Engine
 
-// Pre-discovered Google browser accounts (matching real Chrome profile accounts from screenshot)
-const KNOWN_GOOGLE_ACCOUNTS = [
-    {
-        name: 'Данил',
-        email: 'github14072001@gmail.com',
-        avatar: 'Д',
-        bg: 'from-orange-500 to-amber-600',
-        photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80',
-        role: 'student'
-    },
-    {
-        name: 'Даниил Лаврик',
-        email: 'daniklavrik547@gmail.com',
-        avatar: 'ДЛ',
-        bg: 'from-blue-600 to-indigo-600',
-        photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&q=80',
-        role: 'student'
-    },
-    {
-        name: 'Pyshinka',
-        email: 'daniil29031976@gmail.com',
-        avatar: 'P',
-        bg: 'from-rose-500 to-pink-600',
-        photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&q=80',
-        role: 'student'
-    }
-];
+// Google OAuth 2.0 Client ID Configuration
+function getGoogleClientId() {
+    return localStorage.getItem('google_classroom_oauth_client_id') || (typeof appState !== 'undefined' ? appState.googleClientId : '') || '';
+}
 
+function setGoogleClientId(id) {
+    id = (id || '').trim();
+    localStorage.setItem('google_classroom_oauth_client_id', id);
+    if (typeof appState !== 'undefined') appState.googleClientId = id;
+}
+
+// User State Checks
 function isGuestUser() {
     return !appState.activeAccountId || appState.activeAccountId === 'usr_guest';
 }
@@ -85,21 +69,21 @@ function syncUserInterface() {
     const dashActionsBox = document.getElementById('dash-quick-actions-box');
 
     if (isGuest) {
-        // GUEST MODE RESTRICTIONS (Item 3)
+        // GUEST MODE RESTRICTIONS
         if (btnAvatar) btnAvatar.classList.add('hidden');
         if (btnRegister) btnRegister.classList.remove('hidden');
         if (guestBadge) guestBadge.classList.remove('hidden');
         
-        // Hide Chats button (Item 3)
+        // Hide Chats button in guest mode
         if (navChats) navChats.classList.add('hidden');
         
-        // Hide "Список задач" button (Item 3)
+        // Hide "Список задач" button in guest mode
         if (navTodo) navTodo.classList.add('hidden');
         
-        // Hide Create/Join plus menu (Item 3)
+        // Hide Create/Join plus menu
         if (btnPlus) btnPlus.classList.add('hidden');
         
-        // Hide dashboard create/join buttons, show guest banner (Item 3)
+        // Hide dashboard create/join buttons, show guest banner
         if (dashActionsBox) dashActionsBox.classList.add('hidden');
         if (dashGuestBanner) dashGuestBanner.classList.remove('hidden');
 
@@ -110,7 +94,7 @@ function syncUserInterface() {
         if (createAssignBtn) createAssignBtn.classList.add('hidden');
 
     } else {
-        // LOGGED-IN USER EXPERIENCE
+        // LOGGED-IN USER INTERFACE
         if (btnAvatar) btnAvatar.classList.remove('hidden');
         if (btnRegister) btnRegister.classList.add('hidden');
         if (guestBadge) guestBadge.classList.add('hidden');
@@ -149,7 +133,7 @@ function syncUserInterface() {
         const menuEmail = document.getElementById('menu-user-email');
         if (menuEmail) menuEmail.textContent = user.email;
 
-        // Role badge: always "Студент" or "Преподаватель" (Item 3)
+        // Role badge
         const isTeacher = user.role === 'teacher';
         const roleBadge = document.getElementById('menu-user-role-badge');
         if (roleBadge) {
@@ -219,74 +203,90 @@ window.switchActiveAccount = function(accId) {
     triggerToast(`Переключено на: ${user.name}`);
 };
 
-// Official Google Dark Account Chooser (Item 2 & Screenshot media_1790931713335.png)
-function renderGoogleAuthView() {
-    const listContainer = document.getElementById('google-accounts-chooser-list');
-    if (!listContainer) return;
+// =========================================================================
+// REAL OFFICIAL GOOGLE OAUTH 2.0 INTEGRATION
+// =========================================================================
 
-    // Merge KNOWN_GOOGLE_ACCOUNTS with any newly registered accounts in appState
-    const accountsMap = new Map();
-    KNOWN_GOOGLE_ACCOUNTS.forEach(a => accountsMap.set(a.email.toLowerCase(), a));
-    (appState.accounts || []).forEach(a => {
-        if (a.email) {
-            accountsMap.set(a.email.toLowerCase(), {
-                name: a.name,
-                email: a.email,
-                avatar: a.avatar || a.name.slice(0, 2).toUpperCase(),
-                bg: a.bg || 'from-blue-600 to-indigo-600',
-                photoUrl: a.photoUrl || '',
-                role: a.role || 'student'
-            });
-        }
+// Trigger Official Google Sign-In redirect to accounts.google.com
+window.triggerGoogleSignIn = function() {
+    const clientId = getGoogleClientId();
+    if (!clientId) {
+        showGoogleSetupModal();
+        return;
+    }
+
+    // Build authentic Google OAuth 2.0 endpoint
+    const redirectUri = window.location.origin + window.location.pathname;
+    const params = new URLSearchParams({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        response_type: 'token',
+        scope: 'email profile openid',
+        prompt: 'select_account'
     });
 
-    const accountsList = Array.from(accountsMap.values());
+    // Navigate directly to OFFICIAL Google Account Chooser
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+};
 
-    listContainer.innerHTML = accountsList.map(acc => `
-        <div onclick="selectGoogleAccount('${acc.email}', '${acc.name}', '${acc.role || 'student'}', '${acc.photoUrl || ''}')" class="p-3.5 px-4 rounded-2xl hover:bg-[#2d2e31] cursor-pointer flex items-center space-x-3.5 transition group border-b border-[#3c4043] last:border-0">
-            ${acc.photoUrl 
-                ? `<img src="${acc.photoUrl}" class="w-9 h-9 rounded-full object-cover shrink-0 shadow-sm">` 
-                : `<div class="w-9 h-9 rounded-full bg-gradient-to-tr ${acc.bg || 'from-blue-600 to-indigo-600'} text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">${acc.avatar || 'Г'}</div>`
+// Listen for OAuth 2.0 redirect callback with access_token in URL hash
+window.checkOAuthCallback = async function() {
+    if (window.location.hash && window.location.hash.includes('access_token=')) {
+        try {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            if (accessToken) {
+                // Clear hash from URL immediately without reload
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+                triggerToast('Авторизация через Google...', false);
+
+                // Fetch verified profile from official Google UserInfo endpoint
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (res.ok) {
+                    const profile = await res.json();
+                    await handleAuthenticGoogleLogin(profile);
+                } else {
+                    triggerToast('Не удалось получить данные аккаунта Google', true);
+                }
             }
-            <div class="truncate flex-1">
-                <p class="text-sm font-medium text-[#e8eaed] group-hover:text-white truncate">${acc.name}</p>
-                <p class="text-xs text-[#9aa0a6] truncate">${acc.email}</p>
-            </div>
-            <i class="fa-solid fa-chevron-right text-xs text-[#9aa0a6] opacity-0 group-hover:opacity-100 transition-opacity"></i>
-        </div>
-    `).join('');
-}
+        } catch (err) {
+            console.error('OAuth callback error', err);
+            triggerToast('Ошибка обработки входа Google', true);
+        }
+    }
+};
 
-window.selectGoogleAccount = async function(email, name, role = 'student', photoUrl = '') {
-    email = email.trim().toLowerCase();
-    name = name.trim();
+// Process authentic verified profile from Google
+window.handleAuthenticGoogleLogin = async function(profile) {
+    const email = (profile.email || '').trim().toLowerCase();
+    const name = profile.name || email.split('@')[0] || 'Пользователь Google';
+    const photoUrl = profile.picture || '';
 
-    // Check if account already exists in appState
     let acc = (appState.accounts || []).find(a => a.email && a.email.toLowerCase() === email);
-
     if (!acc) {
-        // Create in SQLite via server
         const newAcc = {
-            id: 'usr_' + Date.now(),
-            name,
-            email,
-            password: '123',
-            role: role || 'student',
+            id: 'usr_g_' + (profile.sub || Date.now()),
+            name: name,
+            email: email,
+            role: 'student',
             avatar: name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2) || 'ГЛ',
             bg: 'from-blue-600 to-indigo-600',
-            photoUrl: photoUrl || '',
-            banner: ''
+            photoUrl: photoUrl,
+            banner: '',
+            googleSub: profile.sub || ''
         };
-
         if (!appState.accounts) appState.accounts = [];
         appState.accounts.push(newAcc);
         appState.activeAccountId = newAcc.id;
         persistState();
-
         syncUserInterface();
         if (typeof renderAllViews === 'function') renderAllViews();
         window.navigateTo('dashboard');
-        triggerToast(`Вход выполнен: ${name}`);
+        triggerToast(`Вход через Google: ${name}`);
 
         try {
             await sendServerAction('/api/accounts/register', newAcc);
@@ -294,47 +294,217 @@ window.selectGoogleAccount = async function(email, name, role = 'student', photo
             console.warn('Account sync note', e);
         }
     } else {
+        acc.name = name;
+        if (photoUrl) acc.photoUrl = photoUrl;
         appState.activeAccountId = acc.id;
         persistState();
         syncUserInterface();
         if (typeof renderAllViews === 'function') renderAllViews();
         window.navigateTo('dashboard');
-        triggerToast(`Вход выполнен: ${name}`);
+        triggerToast(`С возвращением, ${name}!`);
+
+        try {
+            await sendServerAction('/api/accounts/update', acc);
+        } catch (e) {
+            console.warn('Account sync note', e);
+        }
     }
 };
 
-window.toggleCustomGoogleInput = function() {
-    const box = document.getElementById('google-custom-input-box');
-    if (box) box.classList.toggle('hidden');
+// Google OAuth Setup Modal
+window.showGoogleSetupModal = function() {
+    const modal = document.getElementById('modal-google-oauth-setup');
+    if (modal) {
+        modal.classList.remove('hidden');
+        const input = document.getElementById('input-google-client-id');
+        if (input) input.value = getGoogleClientId();
+    }
 };
 
-window.submitCustomGoogleAccount = function() {
-    const emailInput = document.getElementById('custom-google-email');
-    const nameInput = document.getElementById('custom-google-name');
-    const roleSelect = document.getElementById('custom-google-role');
+window.closeGoogleSetupModal = function() {
+    const modal = document.getElementById('modal-google-oauth-setup');
+    if (modal) modal.classList.add('hidden');
+};
 
-    const email = (emailInput ? emailInput.value : '').trim();
-    let name = (nameInput ? nameInput.value : '').trim();
-    const role = (roleSelect ? roleSelect.value : 'student') || 'student';
+window.saveGoogleClientIdAndLogin = function() {
+    const input = document.getElementById('input-google-client-id');
+    const val = (input ? input.value : '').trim();
+    if (!val) {
+        triggerToast('Укажите Google OAuth Client ID', true);
+        return;
+    }
+    setGoogleClientId(val);
+    closeGoogleSetupModal();
+    triggerToast('Client ID сохранен! Переход на страницу Google...');
+    setTimeout(() => {
+        triggerGoogleSignIn();
+    }, 400);
+};
 
-    if (!email) {
-        triggerToast('Введите адрес электронной почты Google', true);
+// =========================================================================
+// STANDARD EMAIL / PASSWORD AUTH MODAL
+// =========================================================================
+
+function openAuthModal(tab = 'login') {
+    const modal = document.getElementById('modal-auth');
+    if (modal) {
+        modal.classList.remove('hidden');
+        renderFastAccountsList();
+    }
+    switchAuthTab(tab);
+}
+
+function switchAuthTab(tab) {
+    const loginSec = document.getElementById('auth-view-login');
+    const regSec = document.getElementById('auth-view-register');
+    const tabLogin = document.getElementById('auth-tab-login');
+    const tabReg = document.getElementById('auth-tab-register');
+
+    if (tab === 'login') {
+        if (loginSec) loginSec.classList.remove('hidden');
+        if (regSec) regSec.classList.add('hidden');
+        if (tabLogin) tabLogin.className = 'flex-1 py-2 text-center text-google-blue border-b-2 border-google-blue transition';
+        if (tabReg) tabReg.className = 'flex-1 py-2 text-center text-google-gray hover:text-google-text transition';
+    } else {
+        if (loginSec) loginSec.classList.add('hidden');
+        if (regSec) regSec.classList.remove('hidden');
+        if (tabLogin) tabLogin.className = 'flex-1 py-2 text-center text-google-gray hover:text-google-text transition';
+        if (tabReg) tabReg.className = 'flex-1 py-2 text-center text-google-blue border-b-2 border-google-blue transition';
+    }
+}
+
+function renderFastAccountsList() {
+    const list = document.getElementById('auth-fast-accounts-list');
+    if (!list) return;
+
+    const accounts = appState.accounts || [];
+    if (accounts.length === 0) {
+        list.innerHTML = '<p class="text-gray-400 italic text-center py-2 text-[11px]">В базе пока нет пользователей</p>';
         return;
     }
 
-    if (!name) {
-        name = email.split('@')[0];
+    list.innerHTML = accounts.map(acc => {
+        const avatarHtml = acc.photoUrl 
+            ? `<img src="${acc.photoUrl}" class="w-7 h-7 rounded-full object-cover shrink-0">`
+            : `<div class="w-7 h-7 rounded-full bg-gradient-to-tr ${acc.bg || 'from-blue-600 to-indigo-600'} text-white text-[10px] font-bold flex items-center justify-center shrink-0">${acc.avatar || 'П'}</div>`;
+        return `
+        <button type="button" onclick="selectFastAccount('${acc.id}')" class="w-full p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/60 border border-google-border dark:border-google-darkBorder flex items-center space-x-2.5 transition text-left group">
+            ${avatarHtml}
+            <div class="truncate flex-1">
+                <p class="font-medium text-xs text-gray-900 dark:text-gray-100">${acc.name}</p>
+                <p class="text-[10px] text-google-gray dark:text-gray-400 truncate">${acc.email || 'без email'} • ${acc.role === 'teacher' ? 'Преподаватель' : 'Студент'}</p>
+            </div>
+            <i class="fa-solid fa-arrow-right-to-bracket text-google-blue text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
+        </button>
+        `;
+    }).join('');
+}
+
+window.selectFastAccount = function(accId) {
+    const acc = (appState.accounts || []).find(a => a.id === accId);
+    if (!acc) return;
+    appState.activeAccountId = acc.id;
+    persistState();
+    syncUserInterface();
+    const modal = document.getElementById('modal-auth');
+    if (modal) modal.classList.add('hidden');
+    if (typeof renderAllViews === 'function') renderAllViews();
+    window.navigateTo('dashboard');
+    triggerToast(`Вход выполнен: ${acc.name}`);
+};
+
+window.submitManualLogin = async function() {
+    const emailInput = document.getElementById('login-email');
+    const passInput = document.getElementById('login-password');
+    const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+    const password = (passInput ? passInput.value : '').trim();
+
+    if (!email) {
+        triggerToast('Введите email для входа', true);
+        return;
     }
 
-    selectGoogleAccount(email, name, role, '');
+    const acc = (appState.accounts || []).find(a => a.email && a.email.toLowerCase() === email);
+    if (!acc) {
+        triggerToast('Пользователь с таким email не найден', true);
+        return;
+    }
+
+    if (acc.password && password && acc.password !== password) {
+        triggerToast('Неверный пароль', true);
+        return;
+    }
+
+    appState.activeAccountId = acc.id;
+    persistState();
+    syncUserInterface();
+    const modal = document.getElementById('modal-auth');
+    if (modal) modal.classList.add('hidden');
+    if (typeof renderAllViews === 'function') renderAllViews();
+    window.navigateTo('dashboard');
+    triggerToast(`Вход выполнен: ${acc.name}`);
 };
 
-window.openOfficialGoogleSignPage = function() {
-    // Direct link to official Google Account Chooser
-    window.open('https://accounts.google.com/v3/signin/accountchooser?flowEntry=AccountChooser', '_blank');
+window.selectedRegBg = 'from-blue-600 to-indigo-600';
+
+window.submitManualRegister = async function() {
+    const nameInput = document.getElementById('reg-name');
+    const emailInput = document.getElementById('reg-email');
+    const passInput = document.getElementById('reg-password');
+    const roleSelect = document.getElementById('reg-role');
+
+    const name = (nameInput ? nameInput.value : '').trim();
+    const email = (emailInput ? emailInput.value : '').trim().toLowerCase();
+    const password = (passInput ? passInput.value : '').trim() || '123';
+    const role = (roleSelect ? roleSelect.value : 'student') || 'student';
+
+    if (!name) {
+        triggerToast('Укажите ваше имя (ФИО)', true);
+        return;
+    }
+    if (!email) {
+        triggerToast('Укажите email адрес', true);
+        return;
+    }
+
+    const existing = (appState.accounts || []).find(a => a.email && a.email.toLowerCase() === email);
+    if (existing) {
+        triggerToast('Пользователь с таким email уже зарегистрирован', true);
+        return;
+    }
+
+    const newAcc = {
+        id: 'usr_' + Date.now(),
+        name,
+        email,
+        password,
+        role,
+        avatar: name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 2) || 'ПЛ',
+        bg: window.selectedRegBg || 'from-blue-600 to-indigo-600',
+        photoUrl: '',
+        banner: ''
+    };
+
+    if (!appState.accounts) appState.accounts = [];
+    appState.accounts.push(newAcc);
+    appState.activeAccountId = newAcc.id;
+    persistState();
+    syncUserInterface();
+
+    const modal = document.getElementById('modal-auth');
+    if (modal) modal.classList.add('hidden');
+    if (typeof renderAllViews === 'function') renderAllViews();
+    window.navigateTo('dashboard');
+    triggerToast(`Аккаунт ${name} успешно создан!`);
+
+    try {
+        await sendServerAction('/api/accounts/register', newAcc);
+    } catch (e) {
+        console.warn('Account sync note', e);
+    }
 };
 
-// Profile settings full view
+// Profile settings view
 function initProfileSettingsView() {
     const user = getCurrentUser();
     const nameInput = document.getElementById('profile-settings-name');
@@ -344,29 +514,4 @@ function initProfileSettingsView() {
     if (nameInput) nameInput.value = user.name || '';
     if (emailInput) emailInput.value = user.email || '';
     if (roleSelect) roleSelect.value = user.role || 'student';
-}
-
-function openAuthModal(tab = 'login') {
-    const modal = document.getElementById('modal-auth');
-    if (modal) modal.classList.remove('hidden');
-    switchAuthTab(tab);
-}
-
-function switchAuthTab(tab) {
-    const loginSec = document.getElementById('auth-section-login');
-    const regSec = document.getElementById('auth-section-register');
-    const tabLogin = document.getElementById('auth-tab-login');
-    const tabReg = document.getElementById('auth-tab-register');
-
-    if (tab === 'login') {
-        if (loginSec) loginSec.classList.remove('hidden');
-        if (regSec) regSec.classList.add('hidden');
-        if (tabLogin) tabLogin.className = 'flex-1 py-3 text-xs font-semibold text-google-blue border-b-2 border-google-blue';
-        if (tabReg) tabReg.className = 'flex-1 py-3 text-xs font-semibold text-google-gray hover:text-google-text';
-    } else {
-        if (loginSec) loginSec.classList.add('hidden');
-        if (regSec) regSec.classList.remove('hidden');
-        if (tabLogin) tabLogin.className = 'flex-1 py-3 text-xs font-semibold text-google-gray hover:text-google-text';
-        if (tabReg) tabReg.className = 'flex-1 py-3 text-xs font-semibold text-google-blue border-b-2 border-google-blue';
-    }
 }

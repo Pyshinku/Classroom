@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <!-- Font Awesome 6 Icons from CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <script>
         tailwind.config = {
@@ -138,10 +140,10 @@
                 </div>
             </div>
 
-            <!-- Unauthenticated Register Button (Requirement 0) -->
-            <button id="btn-header-register" onclick="window.navigateTo('google-auth')" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer" title="Зарегистрироваться в Google Classroom">
+            <!-- Unauthenticated Register / Login Button -->
+            <button id="btn-header-register" onclick="openAuthModal('login')" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer" title="Войти в Google Classroom">
                 <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
-                <span>Зарегистрироваться</span>
+                <span>Войти</span>
             </button>
 
             <!-- Guest Mode Badge (Item 3) -->
@@ -207,9 +209,9 @@
                             <i class="fa-solid fa-gear text-base w-5 text-center"></i>
                             <span>Настроить профиль</span>
                         </button>
-                        <button id="btn-trigger-add-account" onclick="window.navigateTo('google-auth')" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
+                        <button id="btn-trigger-add-account" onclick="openAuthModal('register')" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
                             <i class="fa-solid fa-user-plus text-base w-5 text-center"></i>
-                            <span>Добавить Google аккаунт</span>
+                            <span>Добавить / Сменить аккаунт</span>
                         </button>
                         <button id="btn-menu-guest-mode" onclick="enableGuestMode()" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
                             <i class="fa-regular fa-circle-user text-base w-5 text-center"></i>
@@ -366,7 +368,7 @@
                             <p class="text-xs text-google-gray dark:text-gray-300 mt-0.5">В гостевом режиме отключены создание курсов, список задач и чаты. Войдите через Google, чтобы получить полный доступ.</p>
                         </div>
                     </div>
-                    <button type="button" onclick="window.navigateTo('google-auth')" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-2xl shadow transition shrink-0 flex items-center space-x-2">
+                    <button type="button" onclick="triggerGoogleSignIn()" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-2xl shadow transition shrink-0 flex items-center space-x-2">
                         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
                         <span>Войти через Google</span>
                     </button>
@@ -1225,92 +1227,6 @@
             </section>
 
         
-            <!-- VIEW: GOOGLE ACCOUNT CHOOSER (REQUIREMENT 0) -->
-                        <!-- VIEW: GOOGLE ACCOUNT CHOOSER (OFFICIAL DARK THEME REPLICA) -->
-            <section id="view-google-auth" class="hidden min-h-[calc(100vh-4rem)] bg-[#131314] flex flex-col items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-                <div class="bg-[#1f1f1f] text-[#e8eaed] rounded-3xl w-full max-w-xl shadow-2xl border border-[#3c4043] p-8 sm:p-10 space-y-6">
-                    <!-- Google Logo & Title -->
-                    <div class="space-y-4">
-                        <svg class="w-10 h-10" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                        </svg>
-                        <h1 class="text-3xl font-normal text-white tracking-tight">Выберите аккаунт</h1>
-                        <p class="text-xs text-[#9aa0a6]">для перехода в Google Classroom</p>
-                    </div>
-
-                    <!-- Detected Google Accounts List -->
-                    <div id="google-accounts-chooser-list" class="divide-y divide-[#3c4043] border-t border-b border-[#3c4043] my-4">
-                        <!-- Populated dynamically by js/auth.js -->
-                    </div>
-
-                    <!-- Use Another Account Option -->
-                    <div class="space-y-4">
-                        <button type="button" onclick="toggleCustomGoogleInput()" class="w-full p-3 px-4 rounded-2xl hover:bg-[#2d2e31] flex items-center space-x-3.5 transition text-left text-[#e8eaed] group">
-                            <div class="w-9 h-9 rounded-full bg-[#2d2e31] text-[#9aa0a6] group-hover:text-white flex items-center justify-center shrink-0">
-                                <i class="fa-regular fa-circle-user text-xl"></i>
-                            </div>
-                            <span class="text-sm font-medium">Использовать другой аккаунт</span>
-                        </button>
-
-                        <div id="google-custom-input-box" class="hidden p-5 rounded-2xl bg-[#28292a] border border-[#3c4043] space-y-3">
-                            <p class="text-xs font-semibold text-white">Вход через аккаунт Google</p>
-                            <div>
-                                <label class="block text-[11px] text-[#9aa0a6] mb-1">Адрес электронной почты (@gmail.com) *</label>
-                                <input type="email" id="custom-google-email" placeholder="example@gmail.com" class="w-full bg-[#131314] border border-[#5f6368] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#8ab4f8] focus:outline-none">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] text-[#9aa0a6] mb-1">Имя (необязательно)</label>
-                                    <input type="text" id="custom-google-name" placeholder="Даниил" class="w-full bg-[#131314] border border-[#5f6368] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#8ab4f8] focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] text-[#9aa0a6] mb-1">Роль в Классе</label>
-                                    <select id="custom-google-role" class="w-full bg-[#131314] border border-[#5f6368] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#8ab4f8] focus:outline-none">
-                                        <option value="student">Студент</option>
-                                        <option value="teacher">Преподаватель</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="button" onclick="submitCustomGoogleAccount()" class="w-full py-2.5 bg-[#8ab4f8] hover:bg-[#a8c7fa] text-[#041e49] font-bold text-xs rounded-xl transition shadow">
-                                Продолжить вход
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Actions Footer -->
-                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border-t border-[#3c4043]">
-                        <button type="button" onclick="openOfficialGoogleSignPage()" class="text-[#8ab4f8] hover:underline flex items-center space-x-1.5">
-                            <span>Открыть страницу accounts.google.com</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                        </button>
-                        <div class="flex items-center space-x-4">
-                            <button type="button" onclick="enableGuestMode()" class="text-[#9aa0a6] hover:text-white transition">
-                                Режим гостя
-                            </button>
-                            <button type="button" onclick="window.navigateTo('dashboard')" class="text-[#9aa0a6] hover:text-white transition">
-                                Вернуться в Класс
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Google Footer -->
-                <div class="w-full max-w-xl mt-6 px-2 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#9aa0a6] gap-2">
-                    <div class="flex items-center space-x-1 cursor-pointer hover:text-white">
-                        <span>Русский</span>
-                        <i class="fa-solid fa-caret-down text-[10px]"></i>
-                    </div>
-                    <div class="flex items-center space-x-6">
-                        <a href="https://support.google.com/accounts" target="_blank" class="hover:text-white">Справка</a>
-                        <a href="https://policies.google.com/privacy" target="_blank" class="hover:text-white">Конфиденциальность</a>
-                        <a href="https://policies.google.com/terms" target="_blank" class="hover:text-white">Условия</a>
-                    </div>
-                </div>
-            </section>
-
             <!-- VIEW: SETTINGS WITH NOTIFICATIONS (REQUIREMENT 8) -->
             <section id="view-settings" class="hidden p-4 sm:p-8 max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
                 <!-- Header -->
@@ -1558,8 +1474,37 @@
                 <div class="w-12 h-12 rounded-2xl bg-google-blue text-white flex items-center justify-center mx-auto shadow-md">
                     <i class="fa-solid fa-user-shield text-xl"></i>
                 </div>
-                <h3 id="auth-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100">Аккаунт Google Класс</h3>
-                <p id="auth-modal-subtitle" class="text-xs text-google-gray dark:text-gray-400">Выберите профиль или создайте новый</p>
+                <h3 id="auth-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100">Вход в Google Класс</h3>
+                <p id="auth-modal-subtitle" class="text-xs text-google-gray dark:text-gray-400">Выберите способ авторизации</p>
+            </div>
+
+            <!-- Official Real Google Sign-In Button -->
+            <div class="space-y-2">
+                <button type="button" onclick="triggerGoogleSignIn()" class="w-full py-2.5 px-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center justify-center space-x-3 transition active:scale-[0.98]">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Войти через официальный аккаунт Google</span>
+                </button>
+                <div class="flex items-center justify-between text-[11px] px-1 text-google-gray dark:text-gray-400">
+                    <span class="flex items-center space-x-1">
+                        <i class="fa-solid fa-lock text-[10px] text-green-500"></i>
+                        <span>accounts.google.com</span>
+                    </span>
+                    <button type="button" onclick="showGoogleSetupModal()" class="text-google-blue dark:text-google-blueDarkTheme hover:underline flex items-center space-x-1">
+                        <i class="fa-solid fa-gear text-[10px]"></i>
+                        <span>Настроить Google Client ID</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative flex py-1 items-center">
+                <div class="flex-grow border-t border-google-border dark:border-google-darkBorder"></div>
+                <span class="flex-shrink mx-3 text-google-gray text-[10px] uppercase">или по email и паролю</span>
+                <div class="flex-grow border-t border-google-border dark:border-google-darkBorder"></div>
             </div>
 
             <!-- Auth Tabs (Вход / Регистрация) -->
@@ -1660,6 +1605,59 @@
 
             <div class="flex justify-end pt-2 border-t border-google-border dark:border-google-darkBorder">
                 <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GOOGLE OAUTH 2.0 SETUP & CLIENT ID -->
+    <div id="modal-google-oauth-setup" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-lg shadow-2xl border border-google-border dark:border-google-darkBorder p-6 sm:p-7 space-y-5">
+            <!-- Header -->
+            <div class="flex items-center space-x-3.5 pb-3 border-b border-google-border dark:border-google-darkBorder">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-google-blue shrink-0 shadow-sm">
+                    <svg class="w-7 h-7" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Вход через официальный Google</h3>
+                    <p class="text-xs text-google-gray dark:text-gray-400">Настоящая страница accounts.google.com</p>
+                </div>
+            </div>
+
+            <!-- Explanation & Steps -->
+            <div class="space-y-3 text-xs text-google-gray dark:text-gray-300">
+                <p>Чтобы открыть официальный выбор аккаунта Google (<span class="font-mono text-[11px] text-gray-900 dark:text-white">accounts.google.com</span>) с переходом обратно на ваш сайт, Google требует указать бесплатный <strong>Client ID</strong> приложения:</p>
+                
+                <ol class="list-decimal list-inside space-y-1.5 bg-gray-50 dark:bg-gray-800/60 p-3.5 rounded-2xl border border-google-border dark:border-google-darkBorder text-[11px] leading-relaxed">
+                    <li>Откройте <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-google-blue font-semibold hover:underline inline-flex items-center space-x-1"><span>Google Cloud Console</span> <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>.</li>
+                    <li>Нажмите <strong>Создать учетные данные &rarr; Идентификатор клиента OAuth</strong> (тип: «Веб-приложение»).</li>
+                    <li>В «Разрешенные источники JavaScript» добавьте: <code class="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono text-[10px]">https://pyshinku.github.io</code></li>
+                    <li>Скопируйте <strong>Идентификатор клиента (Client ID)</strong> и вставьте в поле ниже:</li>
+                </ol>
+            </div>
+
+            <!-- Input Form -->
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-gray-800 dark:text-gray-200">Google OAuth Client ID:</label>
+                <div class="relative">
+                    <i class="fa-brands fa-google absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                    <input id="input-google-client-id" type="text" placeholder="например: 123456789-abcdef.apps.googleusercontent.com" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-3 flex flex-col sm:flex-row items-center justify-between gap-2.5 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" onclick="closeGoogleSetupModal()" class="w-full sm:w-auto px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">
+                    Отмена
+                </button>
+                <button type="button" onclick="saveGoogleClientIdAndLogin()" class="w-full sm:w-auto px-5 py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                    <span>Сохранить и перейти в Google</span>
+                </button>
             </div>
         </div>
     </div>

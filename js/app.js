@@ -41,8 +41,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
         calendar: document.getElementById('view-calendar'),
         profileSettings: document.getElementById('view-profile-settings'),
         chats: document.getElementById('view-chats'),
-        settings: document.getElementById('view-settings'),
-        googleAuth: document.getElementById('view-google-auth')
+        settings: document.getElementById('view-settings')
     };
 
     // Close mobile sidebar
@@ -83,16 +82,8 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
         renderDashboard();
 
     } else if (viewName === 'google-auth') {
-        appState.currentCourseId = null;
-        appState.currentAssignmentId = null;
-        if (courseTabs) courseTabs.classList.add('hidden');
-        if (mobileTabs) mobileTabs.classList.add('hidden');
-        if (breadcrumbs) breadcrumbs.classList.add('hidden');
-        if (viewSections.googleAuth) {
-            viewSections.googleAuth.classList.remove('hidden');
-            renderGoogleAuthView();
-        }
-
+        if (typeof triggerGoogleSignIn === 'function') triggerGoogleSignIn();
+        return;
     } else if (viewName === 'settings') {
         appState.currentCourseId = null;
         appState.currentAssignmentId = null;
@@ -107,7 +98,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'course' && param1) {
         if (isGuestUser()) {
             triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = param1;
@@ -141,7 +132,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'create-assignment' && param1) {
         if (isGuestUser()) {
             triggerToast('В гостевом режиме создание заданий недоступно.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = param1;
@@ -174,7 +165,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'edit-assignment' && param1 && param2) {
         if (isGuestUser()) {
             triggerToast('В гостевом режиме редактирование заданий недоступно.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = param1;
@@ -208,7 +199,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'assignment' && param1 && param2) {
         if (isGuestUser()) {
             triggerToast('В гостевом режиме просмотр заданий недоступен. Пожалуйста, выполните вход через Google.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = param1;
@@ -243,7 +234,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'todo') {
         if (isGuestUser()) {
             triggerToast('В гостевом режиме список задач недоступен. Пожалуйста, выполните вход через Google.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = null;
@@ -259,7 +250,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'calendar') {
         if (isGuestUser()) {
             triggerToast('В гостевом режиме календарь недоступен. Пожалуйста, выполните вход через Google.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = null;
@@ -284,7 +275,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
     } else if (viewName === 'chats') {
         if (isGuestUser()) {
             triggerToast('В режиме гостя чаты недоступны. Войдите через Google.', true);
-            window.navigateTo('google-auth');
+            triggerGoogleSignIn();
             return;
         }
         appState.currentCourseId = null;
@@ -438,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             if (isGuestUser()) {
                 triggerToast('В режиме гостя нельзя создавать курсы. Войдите через Google.', true);
-                window.navigateTo('google-auth');
+                triggerGoogleSignIn();
                 return;
             }
             popPlus.classList.toggle('hidden');
@@ -467,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnActionJoin.onclick = () => {
             if (isGuestUser()) {
                 triggerToast('В режиме гостя нельзя записываться на курсы. Войдите через Google.', true);
-                window.navigateTo('google-auth');
+                triggerGoogleSignIn();
                 return;
             }
             document.getElementById('modal-join-course').classList.remove('hidden');
@@ -479,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnActionCreate.onclick = () => {
             if (isGuestUser()) {
                 triggerToast('В режиме гостя нельзя создавать курсы. Войдите через Google.', true);
-                window.navigateTo('google-auth');
+                triggerGoogleSignIn();
                 return;
             }
             document.getElementById('modal-create-course').classList.remove('hidden');
@@ -490,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDashCreate) {
         btnDashCreate.onclick = () => {
             if (isGuestUser()) {
-                window.navigateTo('google-auth');
+                triggerGoogleSignIn();
                 return;
             }
             document.getElementById('modal-create-course').classList.remove('hidden');
@@ -501,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnDashJoin) {
         btnDashJoin.onclick = () => {
             if (isGuestUser()) {
-                window.navigateTo('google-auth');
+                triggerGoogleSignIn();
                 return;
             }
             document.getElementById('modal-join-course').classList.remove('hidden');
@@ -593,6 +584,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (codeInput) codeInput.value = '';
             await joinCourseDirectly(code);
         };
+    }
+
+    // Auth Modal Handlers
+    const tabAuthLogin = document.getElementById('auth-tab-login');
+    const tabAuthReg = document.getElementById('auth-tab-register');
+    if (tabAuthLogin) tabAuthLogin.onclick = () => switchAuthTab('login');
+    if (tabAuthReg) tabAuthReg.onclick = () => switchAuthTab('register');
+
+    const btnSubmitLogin = document.getElementById('btn-submit-login');
+    if (btnSubmitLogin) btnSubmitLogin.onclick = submitManualLogin;
+
+    const btnSubmitReg = document.getElementById('btn-submit-register');
+    if (btnSubmitReg) btnSubmitReg.onclick = submitManualRegister;
+
+    // Avatar color picker buttons in registration
+    document.querySelectorAll('.avatar-color-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            const grad = e.currentTarget.dataset.grad;
+            if (grad) {
+                window.selectedRegBg = grad;
+                document.querySelectorAll('.avatar-color-btn').forEach(b => b.classList.remove('ring-2', 'ring-offset-2', 'ring-google-blue'));
+                e.currentTarget.classList.add('ring-2', 'ring-offset-2', 'ring-google-blue');
+            }
+        };
+    });
+
+    // Handle OAuth callback if redirecting back from official Google
+    if (typeof checkOAuthCallback === 'function') {
+        checkOAuthCallback();
     }
 
     // Initial sync & start in dashboard

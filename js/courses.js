@@ -122,7 +122,7 @@ function renderDashboard() {
                         <p class="text-xs text-google-gray dark:text-gray-400">Вы находитесь в режиме гостя. Чтобы создавать свои курсы или присоединяться к учебным группам, выполните вход через Google.</p>
                     </div>
                     <div class="pt-2 flex justify-center">
-                        <button onclick="window.navigateTo('google-auth')" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark text-white rounded-2xl text-xs font-semibold shadow transition flex items-center space-x-2">
+                        <button onclick="triggerGoogleSignIn()" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark text-white rounded-2xl text-xs font-semibold shadow transition flex items-center space-x-2">
                             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
                             <span>Войти через Google</span>
                         </button>
@@ -158,7 +158,7 @@ function renderDashboard() {
         const isMember = (course.studentIds || []).includes(user.id) || isCourseTeacher(course, user);
 
         return `
-            <div onclick="if(isGuestUser()){ triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true); window.navigateTo('google-auth'); return; } window.navigateTo('course', '${course.id}')" class="group bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1">
+            <div onclick="if(isGuestUser()){ triggerToast('В гостевом режиме вход на курсы недоступен. Пожалуйста, выполните вход через Google.', true); triggerGoogleSignIn(); return; } window.navigateTo('course', '${course.id}')" class="group bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1">
                 <div>
                     <!-- Header Banner -->
                     <div class="h-32 bg-gradient-to-tr ${course.gradient || 'from-blue-600 to-indigo-700'} relative p-5 flex flex-col justify-between overflow-hidden">
@@ -499,7 +499,7 @@ window.joinCourseDirectly = async function(code) {
 
     if (isGuestUser()) {
         triggerToast('В режиме гостя нельзя присоединяться к курсам. Войдите через Google.', true);
-        window.navigateTo('google-auth');
+        triggerGoogleSignIn();
         return;
     }
 
