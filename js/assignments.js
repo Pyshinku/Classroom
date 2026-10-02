@@ -71,6 +71,13 @@ function renderClassworkTab(course) {
 function initCreateAssignmentView(course, editAssign = null) {
     if (!course) return;
 
+    const user = getCurrentUser();
+    if (!isCourseTeacher(course, user)) {
+        triggerToast('Только преподаватель этого курса может создавать или редактировать задания', true);
+        window.navigateTo('course', course.id);
+        return;
+    }
+
     editingAssignmentId = editAssign ? editAssign.id : null;
     pendingCreateAttachments = editAssign && editAssign.attachments ? [...editAssign.attachments] : [];
 
@@ -195,6 +202,13 @@ async function saveAssignmentWorkspace() {
 
     const courseId = appState.currentCourseId;
     if (!courseId) return;
+
+    const course = (appState.courses || []).find(c => c.id === courseId);
+    const user = getCurrentUser();
+    if (!course || !isCourseTeacher(course, user)) {
+        triggerToast('Недостаточно прав для сохранения задания в этом курсе', true);
+        return;
+    }
 
     if (!appState.assignments) appState.assignments = [];
 

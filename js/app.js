@@ -261,7 +261,7 @@ window.navigateTo = function(viewName, param1 = null, param2 = null) {
             if (typeof renderCalendarView === 'function') renderCalendarView();
         }
 
-    } else if (viewName === 'profile-settings') {
+    } else if (viewName === 'profile-settings' || viewName === 'profileSettings') {
         appState.currentCourseId = null;
         if (courseTabs) courseTabs.classList.add('hidden');
         if (mobileTabs) mobileTabs.classList.add('hidden');
@@ -458,6 +458,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    const btnQuickCreate = document.getElementById('btn-quick-create-course');
+    if (btnQuickCreate) {
+        btnQuickCreate.onclick = () => {
+            if (isGuestUser()) {
+                triggerToast('В режиме гостя нельзя создавать курсы. Войдите через Google.', true);
+                triggerGoogleSignIn();
+                return;
+            }
+            document.getElementById('modal-create-course').classList.remove('hidden');
+        };
+    }
+
     const btnDashCreate = document.getElementById('btn-dash-create');
     if (btnDashCreate) {
         btnDashCreate.onclick = () => {
@@ -534,6 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 banner: selectedBannerImg,
                 gradient: selectedBannerGrad,
                 teacherId: user.id,
+                teacherEmail: user.email,
+                teacherName: user.name,
                 studentIds: [],
                 coTeacherIds: []
             };

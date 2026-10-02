@@ -13,13 +13,24 @@ function getCourseBadgeLetters(name) {
 
 function isCourseTeacher(course, user = null) {
     user = user || getCurrentUser();
+    if (!user || user.role === 'guest') return false;
     if (!course) return user.role === 'teacher';
-    return user.role === 'teacher' || course.teacherId === user.id || (course.coTeacherIds || []).includes(user.id);
+    const isOwner = Boolean(
+        (course.teacherId && course.teacherId === user.id) ||
+        (course.teacherEmail && user.email && course.teacherEmail.toLowerCase() === user.email.toLowerCase()) ||
+        (Array.isArray(course.coTeacherIds) && course.coTeacherIds.includes(user.id))
+    );
+    if (isOwner) return true;
+    if (!course.teacherId && !course.teacherEmail && user.role === 'teacher') {
+        return true;
+    }
+    return false;
 }
 
 function switchCourseTab(tabKey) {
+    const course = (appState.courses || []).find(c => c.id === appState.currentCourseId);
     const user = getCurrentUser();
-    if (tabKey === 'grades' && user.role !== 'teacher') {
+    if (tabKey === 'grades' && !isCourseTeacher(course, user)) {
         tabKey = 'stream';
     }
 
@@ -208,46 +219,372 @@ function renderDashboard() {
 function renderCurrentCourseView(course) {
     if (!course) return;
 
-    // Header banner
-    const bannerBox = document.getElementById('hero-banner-box');
-    const bannerBg = document.getElementById('hero-banner-bg');
-    if (bannerBox) {
-        bannerBox.className = `w-full rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-md flex flex-col justify-between min-h-[170px] sm:min-h-[200px] text-white bg-gradient-to-tr ${course.gradient || 'from-blue-600 to-indigo-700'}`;
-    }
-    if (bannerBg) {
+    const user = getCurrentUser();
+    const isTeacher = isCourseTeacher(course, user);
+
+    // Hero banner container
+    const heroBanner = document.getElementById('course-hero-banner');
+    if (heroBanner) {
         if (course.banner) {
-            bannerBg.style.backgroundImage = `url('${course.banner}')`;
-            bannerBg.classList.remove('hidden');
+            heroBanner.style.backgroundImage = `url('${course.banner}')`;
+            heroBanner.style.backgroundSize = 'cover';
+            heroBanner.style.backgroundPosition = 'center';
         } else {
-            bannerBg.classList.add('hidden');
+            heroBanner.style.backgroundImage = '';
+            heroBanner.className = `rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden transition-all duration-300 min-h-[220px] flex flex-col justify-between bg-gradient-to-tr ${course.gradient || 'from-blue-600 to-indigo-700'}`;
         }
     }
 
-    document.getElementById('hero-banner-title').textContent = course.name;
-    document.getElementById('hero-banner-section').textContent = course.section || 'Основной раздел';
-    document.getElementById('hero-banner-code').textContent = course.code;
+    const titleEl = document.getElementById('hero-banner-title');
+    if (titleEl) titleEl.textContent = course.name || 'Курс';
 
-    const teacher = (appState.accounts || []).find(a => a.id === course.teacherId) || { name: 'Преподаватель курса' };
+    const subBadge = document.getElementById('hero-banner-subject-badge');
+    if (subBadge) {
+        subBadge.textContent = course.subject || 'Учебный предмет';
+        subBadge.classList.toggle('hidden', !course.subject);
+    }
+
+    const subTitleEl = document.getElementById('hero-banner-subtitle');
+    if (subTitleEl) subTitleEl.textContent = course.section || 'Основной раздел';
+
+    const teacher = (appState.accounts || []).find(a => a.id === course.teacherId || (a.email && a.email.toLowerCase() === (course.teacherEmail || '').toLowerCase())) || { name: course.teacherName || 'Преподаватель' };
+    const authorTextEl = document.getElementById('hero-banner-author-text');
+    if (authorTextEl) authorTextEl.textContent = `Преподаватель: ${teacher.name}`;
+
+    // Course Code block
+    if (!course.code) {
+        course.code = Math.random().toString(36).substring(2, 7).toUpperCase();
+        persistState();
+    }
+    const codeEl = document.getElementById('hero-banner-code');
+    if (codeEl) codeEl.textContent = course.code;
+
+    // Permissions: Settings button
+    const settingsBtn = document.getElementById('btn-open-course-settings');
+    if (settingsBtn) {
+        settingsBtn.classList.toggle('hidden', !isTeacher);
+        settingsBtn.onclick = () => openCourseSettingsModal(course);
+    }
+
+    // Teacher vs Student Tab controls
+    const gradesTab = document.getElementById('tab-btn-grades');
+    const gradesMobileTab = document.getElementById('tab-btn-grades-mobile');
+    const createAssignBtn = document.getElementById('btn-trigger-create-assignment');
+
+    if (gradesTab) gradesTab.classList.toggle('hidden', !isTeacher);
+    if (gradesMobileTab) gradesMobileTab.classList.toggle('hidden', !isTeacher);
+    if (createAssignBtn) {
+        createAssignBtn.classList.toggle('hidden', !isTeacher);
+        createAssignBtn.onclick = () => window.navigateTo('create-assignment', course.id);
+    }
+
+    // Left sidebar meta cards
+    const metaSubject = document.getElementById('course-meta-subject');
     const metaTeacher = document.getElementById('course-meta-teacher');
     const metaStudents = document.getElementById('course-meta-students');
 
+    if (metaSubject) {
+        metaSubject.innerHTML = `<span>Предмет: <strong>${course.subject || 'Общий курс'}</strong></span>`;
+    }
     if (metaTeacher) {
-        metaTeacher.innerHTML = `
-            <i class="fa-solid fa-chalkboard-user text-google-green"></i>
-            <span>Преподаватель: <strong>${teacher.name}</strong></span>
-        `;
+        metaTeacher.innerHTML = `<i class="fa-solid fa-chalkboard-user text-google-green"></i> <span>Преподаватель: <strong>${teacher.name}</strong></span>`;
     }
     if (metaStudents) {
-        metaStudents.innerHTML = `
-            <i class="fa-solid fa-users text-purple-500"></i>
-            <span>Записано студентов: <strong>${(course.studentIds || []).length}</strong></span>
-        `;
+        metaStudents.innerHTML = `<i class="fa-solid fa-users text-purple-500"></i> <span>Записано студентов: <strong>${(course.studentIds || []).length}</strong></span>`;
     }
 
+    initAnnouncementBox(course);
     renderStreamTab(course);
     if (typeof renderClassworkTab === 'function') renderClassworkTab(course);
     renderPeopleTab(course);
-    renderGradesTab(course);
+    if (isTeacher) renderGradesTab(course);
+}
+
+function openCourseSettingsModal(course) {
+    if (!course) return;
+    const modal = document.getElementById('modal-course-settings');
+    if (!modal) return;
+
+    window.editingCourseSettings = {
+        id: course.id,
+        name: course.name || '',
+        section: course.section || '',
+        subject: course.subject || '',
+        description: course.description || '',
+        banner: course.banner || '',
+        gradient: course.gradient || 'from-blue-600 to-indigo-700'
+    };
+
+    const nameInput = document.getElementById('input-course-settings-name');
+    const sectionInput = document.getElementById('input-course-settings-section');
+    const subjectInput = document.getElementById('input-course-settings-subject');
+    const descInput = document.getElementById('input-course-settings-desc');
+    const bannerUrlInput = document.getElementById('input-course-settings-banner-url');
+    const bannerFileInput = document.getElementById('input-course-settings-banner-file');
+
+    if (nameInput) nameInput.value = window.editingCourseSettings.name;
+    if (sectionInput) sectionInput.value = window.editingCourseSettings.section;
+    if (subjectInput) subjectInput.value = window.editingCourseSettings.subject;
+    if (descInput) descInput.value = window.editingCourseSettings.description;
+    if (bannerUrlInput) {
+        bannerUrlInput.value = (window.editingCourseSettings.banner && !window.editingCourseSettings.banner.startsWith('data:')) ? window.editingCourseSettings.banner : '';
+    }
+
+    // Preset click listeners
+    const presetOptions = document.querySelectorAll('#course-settings-banner-presets .course-settings-preset-option');
+    presetOptions.forEach(opt => {
+        const img = opt.dataset.img || '';
+        const grad = opt.dataset.grad || '';
+        if (img === window.editingCourseSettings.banner) {
+            opt.classList.add('border-google-blue', 'scale-105');
+            opt.classList.remove('border-transparent');
+        } else {
+            opt.classList.remove('border-google-blue', 'scale-105');
+            opt.classList.add('border-transparent');
+        }
+
+        opt.onclick = () => {
+            window.editingCourseSettings.banner = img;
+            window.editingCourseSettings.gradient = grad;
+            if (bannerUrlInput) bannerUrlInput.value = '';
+            presetOptions.forEach(o => {
+                o.classList.remove('border-google-blue', 'scale-105');
+                o.classList.add('border-transparent');
+            });
+            opt.classList.add('border-google-blue', 'scale-105');
+            opt.classList.remove('border-transparent');
+        };
+    });
+
+    if (bannerUrlInput) {
+        bannerUrlInput.oninput = () => {
+            window.editingCourseSettings.banner = bannerUrlInput.value.trim();
+            presetOptions.forEach(o => {
+                o.classList.remove('border-google-blue', 'scale-105');
+                o.classList.add('border-transparent');
+            });
+        };
+    }
+
+    if (bannerFileInput) {
+        bannerFileInput.onchange = (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    window.editingCourseSettings.banner = event.target.result;
+                    if (bannerUrlInput) bannerUrlInput.value = '';
+                    presetOptions.forEach(o => {
+                        o.classList.remove('border-google-blue', 'scale-105');
+                        o.classList.add('border-transparent');
+                    });
+                    triggerToast('Обложка курса выбрана');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    // Save button
+    const btnSave = document.getElementById('btn-save-course-settings');
+    if (btnSave) {
+        btnSave.onclick = async () => {
+            const updatedName = nameInput ? nameInput.value.trim() : '';
+            if (!updatedName) {
+                triggerToast('Название курса не может быть пустым', true);
+                return;
+            }
+
+            const cIdx = (appState.courses || []).findIndex(c => c.id === course.id);
+            if (cIdx === -1) return;
+
+            const updatedCourse = appState.courses[cIdx];
+            updatedCourse.name = updatedName;
+            updatedCourse.section = sectionInput ? sectionInput.value.trim() : '';
+            updatedCourse.subject = subjectInput ? subjectInput.value.trim() : '';
+            updatedCourse.description = descInput ? descInput.value.trim() : '';
+            if (window.editingCourseSettings.banner) {
+                updatedCourse.banner = window.editingCourseSettings.banner;
+            }
+            if (window.editingCourseSettings.gradient) {
+                updatedCourse.gradient = window.editingCourseSettings.gradient;
+            }
+
+            persistState();
+            modal.classList.add('hidden');
+            renderCurrentCourseView(updatedCourse);
+            renderSidebar();
+            renderDashboard();
+            triggerToast('Курс успешно обновлен!');
+
+            await sendServerAction('/api/courses/update', updatedCourse);
+        };
+    }
+
+    // Delete button
+    const btnDelete = document.getElementById('btn-delete-current-course');
+    if (btnDelete) {
+        btnDelete.onclick = async () => {
+            if (!confirm(`Вы действительно хотите удалить курс "${course.name}"? Это действие необратимо.`)) {
+                return;
+            }
+
+            appState.courses = (appState.courses || []).filter(c => c.id !== course.id);
+            appState.assignments = (appState.assignments || []).filter(a => a.courseId !== course.id);
+            appState.announcements = (appState.announcements || []).filter(a => a.courseId !== course.id);
+
+            persistState();
+            modal.classList.add('hidden');
+            triggerToast(`Курс "${course.name}" удален`);
+            renderSidebar();
+            renderDashboard();
+            window.navigateTo('dashboard');
+
+            await sendServerAction('/api/courses/delete', { id: course.id });
+        };
+    }
+
+    modal.classList.remove('hidden');
+}
+
+let pendingAnnouncementAttachments = [];
+
+function initAnnouncementBox(course) {
+    const user = getCurrentUser();
+    const isTeacher = isCourseTeacher(course, user);
+    const box = document.getElementById('announcement-collapsed')?.parentElement;
+    if (!box) return;
+
+    if (!isTeacher) {
+        box.classList.add('hidden');
+        return;
+    }
+    box.classList.remove('hidden');
+
+    const col = document.getElementById('announcement-collapsed');
+    const exp = document.getElementById('announcement-expanded');
+    const avatarEl = document.getElementById('announcement-user-avatar');
+    const bodyInput = document.getElementById('input-announcement-body');
+    const previewEl = document.getElementById('announcement-attachments-preview');
+
+    if (avatarEl) {
+        avatarEl.textContent = user.avatar || 'ИС';
+        avatarEl.className = `w-10 h-10 rounded-full bg-gradient-to-tr ${user.bg || 'from-blue-600 to-indigo-600'} text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0`;
+    }
+
+    pendingAnnouncementAttachments = [];
+    if (bodyInput) bodyInput.value = '';
+    if (previewEl) previewEl.innerHTML = '';
+    if (col) col.classList.remove('hidden');
+    if (exp) exp.classList.add('hidden');
+
+    if (col) {
+        col.onclick = () => {
+            col.classList.add('hidden');
+            if (exp) exp.classList.remove('hidden');
+            if (bodyInput) bodyInput.focus();
+        };
+    }
+
+    const btnCancel = document.getElementById('btn-announcement-cancel');
+    if (btnCancel) {
+        btnCancel.onclick = () => {
+            if (col) col.classList.remove('hidden');
+            if (exp) exp.classList.add('hidden');
+            if (bodyInput) bodyInput.value = '';
+            pendingAnnouncementAttachments = [];
+            if (previewEl) previewEl.innerHTML = '';
+        };
+    }
+
+    const renderAnnAttachments = () => {
+        if (!previewEl) return;
+        previewEl.innerHTML = pendingAnnouncementAttachments.map((att, idx) => `
+            <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-blue-50 dark:bg-blue-950 text-xs text-google-blue font-medium border border-blue-200 dark:border-blue-800">
+                <i class="fa-solid ${att.type === 'video' ? 'fa-video text-red-500' : (att.type === 'file' ? 'fa-paperclip' : 'fa-link text-emerald-500')}"></i>
+                <span class="max-w-[150px] truncate">${att.name || att.label}</span>
+                <button type="button" onclick="pendingAnnouncementAttachments.splice(${idx}, 1); renderAnnAttachments();" class="ml-1 hover:text-red-500">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </span>
+        `).join('');
+    };
+    window.renderAnnAttachments = renderAnnAttachments;
+
+    const btnLink = document.getElementById('btn-attach-link');
+    if (btnLink) {
+        btnLink.onclick = () => {
+            const url = prompt('Введите URL ссылки:', 'https://');
+            if (url) {
+                const label = prompt('Название ссылки:', 'Полезный материал') || url;
+                pendingAnnouncementAttachments.push({ type: 'link', label, name: label, url });
+                renderAnnAttachments();
+            }
+        };
+    }
+
+    const btnVideo = document.getElementById('btn-attach-video');
+    if (btnVideo) {
+        btnVideo.onclick = () => {
+            const url = prompt('Ссылка на YouTube:', 'https://youtube.com/watch?v=');
+            if (url) {
+                const label = prompt('Название видео:', 'Видеоматериал') || 'YouTube видео';
+                pendingAnnouncementAttachments.push({ type: 'video', label, name: label, url });
+                renderAnnAttachments();
+            }
+        };
+    }
+
+    const inputFile = document.getElementById('input-announcement-file');
+    const btnFile = document.getElementById('btn-attach-file');
+    if (btnFile && inputFile) {
+        btnFile.onclick = () => inputFile.click();
+        inputFile.onchange = (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                pendingAnnouncementAttachments.push({ type: 'file', label: file.name, name: file.name, url: '#' });
+                renderAnnAttachments();
+                inputFile.value = '';
+            }
+        };
+    }
+
+    const btnPublish = document.getElementById('btn-announcement-publish');
+    if (btnPublish) {
+        btnPublish.onclick = async () => {
+            const text = bodyInput ? bodyInput.value.trim() : '';
+            if (!text) {
+                triggerToast('Введите текст записи', true);
+                return;
+            }
+
+            const newAnn = {
+                id: 'ann_' + Date.now(),
+                courseId: course.id,
+                authorName: user.name,
+                authorAvatar: user.avatar,
+                date: 'Сегодня',
+                body: text,
+                attachments: [...pendingAnnouncementAttachments],
+                comments: []
+            };
+
+            if (!appState.announcements) appState.announcements = [];
+            appState.announcements.unshift(newAnn);
+            persistState();
+
+            if (col) col.classList.remove('hidden');
+            if (exp) exp.classList.add('hidden');
+            if (bodyInput) bodyInput.value = '';
+            pendingAnnouncementAttachments = [];
+            if (previewEl) previewEl.innerHTML = '';
+
+            renderStreamTab(course);
+            triggerToast('Запись опубликована в ленте!');
+
+            await sendServerAction('/api/announcements/create', newAnn);
+        };
+    }
 }
 
 function renderStreamTab(course) {

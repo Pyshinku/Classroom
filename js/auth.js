@@ -159,6 +159,29 @@ function syncUserInterface() {
                 : 'px-3 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-google-green dark:text-emerald-300';
         }
 
+        // Settings View Profile Card Summary
+        const setAvatar = document.getElementById('settings-user-avatar');
+        if (setAvatar) {
+            if (user.photoUrl) {
+                setAvatar.className = 'w-16 h-16 rounded-full text-white text-xl font-bold flex items-center justify-center shadow overflow-hidden bg-gray-200 dark:bg-gray-700';
+                setAvatar.innerHTML = `<img src="${user.photoUrl}" alt="${user.name}" class="w-full h-full object-cover">`;
+            } else {
+                setAvatar.className = `w-16 h-16 rounded-full text-white text-xl font-bold flex items-center justify-center shadow overflow-hidden bg-gradient-to-tr ${user.bg || 'from-blue-600 to-indigo-600'}`;
+                setAvatar.innerHTML = user.avatar || 'П';
+            }
+        }
+        const setName = document.getElementById('settings-user-name');
+        if (setName) setName.textContent = user.name;
+        const setEmail = document.getElementById('settings-user-email');
+        if (setEmail) setEmail.textContent = user.email;
+        const setRole = document.getElementById('settings-user-role');
+        if (setRole) {
+            setRole.textContent = isTeacher ? 'Преподаватель' : 'Студент';
+            setRole.className = isTeacher
+                ? 'inline-block mt-1.5 px-3 py-0.5 text-[11px] font-semibold rounded-full bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300'
+                : 'inline-block mt-1.5 px-3 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-google-green dark:text-emerald-300';
+        }
+
         // Announcement avatar
         const annAvatar = document.getElementById('announcement-user-avatar');
         if (annAvatar) {
@@ -524,14 +547,294 @@ window.submitManualRegister = async function() {
     }
 };
 
-// Profile settings view
+// Profile settings view & Customization Engine
 function initProfileSettingsView() {
     const user = getCurrentUser();
-    const nameInput = document.getElementById('profile-settings-name');
-    const emailInput = document.getElementById('profile-settings-email');
-    const roleSelect = document.getElementById('profile-settings-role');
+    if (isGuestUser()) {
+        triggerToast('Для настройки профиля войдите через Google.', true);
+        triggerGoogleSignIn();
+        return;
+    }
+
+    // Populate inputs
+    const nameInput = document.getElementById('full-profile-input-name');
+    const emailInput = document.getElementById('full-profile-input-email');
+    const roleSelect = document.getElementById('full-profile-select-role');
+    const charInput = document.getElementById('full-profile-avatar-char');
+    const photoUrlInput = document.getElementById('full-profile-photo-url');
+    const bannerUrlInput = document.getElementById('full-profile-banner-url');
 
     if (nameInput) nameInput.value = user.name || '';
-    if (emailInput) emailInput.value = user.email || '';
+    if (emailInput) {
+        emailInput.value = user.email || '';
+        emailInput.disabled = true; // Email bound to Google
+    }
     if (roleSelect) roleSelect.value = user.role || 'student';
+    if (charInput) charInput.value = user.avatar || 'ИС';
+    if (photoUrlInput) photoUrlInput.value = user.photoUrl || '';
+    if (bannerUrlInput) bannerUrlInput.value = user.banner || '';
+
+    // Temp state for editing
+    window.editingProfileState = {
+        name: user.name || '',
+        role: user.role || 'student',
+        avatar: user.avatar || 'ИС',
+        bg: user.bg || 'from-blue-600 to-indigo-600',
+        photoUrl: user.photoUrl || '',
+        banner: user.banner || ''
+    };
+
+    updateLiveProfilePreview();
+
+    // Setup color gradients
+    const colorsGrid = document.getElementById('full-profile-colors-grid');
+    if (colorsGrid) {
+        const gradients = [
+            { name: 'Синий', grad: 'from-blue-600 to-indigo-600' },
+            { name: 'Изумруд', grad: 'from-emerald-500 to-teal-600' },
+            { name: 'Фиолетовый', grad: 'from-purple-600 to-pink-600' },
+            { name: 'Янтарь', grad: 'from-amber-500 to-orange-600' },
+            { name: 'Розовый', grad: 'from-rose-500 to-red-600' },
+            { name: 'Тёмный', grad: 'from-slate-700 to-gray-900' }
+        ];
+        colorsGrid.innerHTML = gradients.map(g => `
+            <button type="button" data-grad="${g.grad}" class="profile-color-picker-btn w-9 h-9 rounded-2xl bg-gradient-to-tr ${g.grad} shadow hover:scale-110 active:scale-95 transition ${window.editingProfileState.bg === g.grad ? 'ring-2 ring-offset-2 ring-google-blue' : ''}" title="${g.name}"></button>
+        `).join('');
+
+        colorsGrid.querySelectorAll('.profile-color-picker-btn').forEach(btn => {
+            btn.onclick = () => {
+                window.editingProfileState.bg = btn.dataset.grad;
+                window.editingProfileState.photoUrl = '';
+                if (photoUrlInput) photoUrlInput.value = '';
+                colorsGrid.querySelectorAll('.profile-color-picker-btn').forEach(b => b.classList.remove('ring-2', 'ring-offset-2', 'ring-google-blue'));
+                btn.classList.add('ring-2', 'ring-offset-2', 'ring-google-blue');
+                updateLiveProfilePreview();
+            };
+        });
+    }
+
+    // Quick emoji stickers
+    const emojiGrid = document.getElementById('full-profile-emoji-grid');
+    if (emojiGrid) {
+        const emojis = ['🎓', '📚', '💻', '🚀', '⭐', '🔥', '🎨', '⚡'];
+        emojiGrid.innerHTML = emojis.map(em => `
+            <button type="button" class="w-8 h-8 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm flex items-center justify-center transition active:scale-90">${em}</button>
+        `).join('');
+        emojiGrid.querySelectorAll('button').forEach(btn => {
+            btn.onclick = () => {
+                if (charInput) charInput.value = btn.textContent;
+                window.editingProfileState.avatar = btn.textContent;
+                window.editingProfileState.photoUrl = '';
+                if (photoUrlInput) photoUrlInput.value = '';
+                updateLiveProfilePreview();
+            };
+        });
+    }
+
+    // Input listeners
+    if (nameInput) {
+        nameInput.oninput = () => {
+            window.editingProfileState.name = nameInput.value.trim() || user.name;
+            updateLiveProfilePreview();
+        };
+    }
+    if (roleSelect) {
+        roleSelect.onchange = () => {
+            window.editingProfileState.role = roleSelect.value;
+            updateLiveProfilePreview();
+        };
+    }
+    if (charInput) {
+        charInput.oninput = () => {
+            window.editingProfileState.avatar = charInput.value.trim().substring(0, 4) || 'ИС';
+            window.editingProfileState.photoUrl = '';
+            updateLiveProfilePreview();
+        };
+    }
+
+    // Photo URL apply
+    const btnApplyPhoto = document.getElementById('btn-apply-avatar-url');
+    if (btnApplyPhoto && photoUrlInput) {
+        btnApplyPhoto.onclick = () => {
+            const val = photoUrlInput.value.trim();
+            if (val) {
+                window.editingProfileState.photoUrl = val;
+                updateLiveProfilePreview();
+                triggerToast('Ссылка на фото применена');
+            }
+        };
+    }
+
+    // Reset avatar photo
+    const btnResetPhoto = document.getElementById('btn-reset-avatar-photo');
+    if (btnResetPhoto) {
+        btnResetPhoto.onclick = () => {
+            window.editingProfileState.photoUrl = '';
+            if (photoUrlInput) photoUrlInput.value = '';
+            updateLiveProfilePreview();
+            triggerToast('Фото сброшено, используется цветной аватар');
+        };
+    }
+
+    // Avatar file upload
+    const avatarFileInput = document.getElementById('full-profile-avatar-file');
+    if (avatarFileInput) {
+        avatarFileInput.onchange = (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    window.editingProfileState.photoUrl = ev.target.result;
+                    if (photoUrlInput) photoUrlInput.value = '';
+                    updateLiveProfilePreview();
+                    triggerToast('Фото успешно загружено');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    // Banner presets
+    const bannerPresets = document.getElementById('full-profile-banner-presets');
+    if (bannerPresets) {
+        const presets = [
+            { title: 'IT & Код', img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80' },
+            { title: 'Наука & Лаб', img: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1200&q=80' },
+            { title: 'Литература', img: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1200&q=80' },
+            { title: 'Искусство', img: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80' },
+            { title: 'Математика', img: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200&q=80' },
+            { title: 'Градиент', img: '' }
+        ];
+        bannerPresets.innerHTML = presets.map(p => `
+            <div data-img="${p.img}" class="profile-banner-preset-item h-16 rounded-2xl bg-cover bg-center cursor-pointer border-2 border-transparent hover:border-google-blue relative overflow-hidden transition ${window.editingProfileState.banner === p.img ? 'border-google-blue ring-2 ring-google-blue' : ''}" style="${p.img ? `background-image: url('${p.img}')` : 'background: linear-gradient(135deg, #1d4ed8, #4338ca)'}">
+                <span class="absolute bottom-1 left-1 bg-black/60 text-[9px] text-white px-1.5 py-0.5 rounded backdrop-blur-sm">${p.title}</span>
+            </div>
+        `).join('');
+
+        bannerPresets.querySelectorAll('.profile-banner-preset-item').forEach(item => {
+            item.onclick = () => {
+                window.editingProfileState.banner = item.dataset.img || '';
+                if (bannerUrlInput) bannerUrlInput.value = window.editingProfileState.banner;
+                bannerPresets.querySelectorAll('.profile-banner-preset-item').forEach(i => i.classList.remove('border-google-blue', 'ring-2', 'ring-google-blue'));
+                item.classList.add('border-google-blue', 'ring-2', 'ring-google-blue');
+                updateLiveProfilePreview();
+            };
+        });
+    }
+
+    // Banner URL apply
+    const btnApplyBanner = document.getElementById('btn-apply-banner-url');
+    if (btnApplyBanner && bannerUrlInput) {
+        btnApplyBanner.onclick = () => {
+            const val = bannerUrlInput.value.trim();
+            window.editingProfileState.banner = val;
+            updateLiveProfilePreview();
+            triggerToast('Ссылка на баннер применена');
+        };
+    }
+
+    // Banner file upload
+    const bannerFileInput = document.getElementById('full-profile-banner-file');
+    if (bannerFileInput) {
+        bannerFileInput.onchange = (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    window.editingProfileState.banner = ev.target.result;
+                    if (bannerUrlInput) bannerUrlInput.value = '';
+                    updateLiveProfilePreview();
+                    triggerToast('Баннер успешно загружен');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    // Back to dashboard
+    const btnBack = document.getElementById('btn-back-from-profile');
+    if (btnBack) {
+        btnBack.onclick = () => window.navigateTo('dashboard');
+    }
+
+    // Save buttons
+    const btnSaveTop = document.getElementById('btn-save-full-profile');
+    const btnSaveBottom = document.getElementById('btn-save-full-profile-bottom');
+    if (btnSaveTop) btnSaveTop.onclick = saveFullProfileChanges;
+    if (btnSaveBottom) btnSaveBottom.onclick = saveFullProfileChanges;
+}
+
+function updateLiveProfilePreview() {
+    const state = window.editingProfileState;
+    if (!state) return;
+
+    const bannerEl = document.getElementById('profile-preview-banner');
+    if (bannerEl) {
+        if (state.banner) {
+            bannerEl.style.backgroundImage = `url('${state.banner}')`;
+        } else {
+            bannerEl.style.backgroundImage = 'none';
+        }
+    }
+
+    const avatarBox = document.getElementById('profile-preview-avatar-box');
+    const avatarText = document.getElementById('profile-preview-avatar-text');
+    if (avatarBox) {
+        if (state.photoUrl) {
+            avatarBox.className = 'w-28 h-28 sm:w-32 sm:h-32 rounded-full ring-4 ring-white dark:ring-google-darkSurface shadow-2xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold bg-gray-200 dark:bg-gray-700 select-none';
+            avatarBox.innerHTML = `<img src="${state.photoUrl}" class="w-full h-full object-cover">`;
+        } else {
+            avatarBox.className = `w-28 h-28 sm:w-32 sm:h-32 rounded-full ring-4 ring-white dark:ring-google-darkSurface shadow-2xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold bg-gradient-to-tr ${state.bg || 'from-blue-600 to-indigo-600'} select-none`;
+            avatarBox.innerHTML = `<span id="profile-preview-avatar-text">${state.avatar || 'ИС'}</span>`;
+        }
+    }
+
+    const nameEl = document.getElementById('profile-preview-name');
+    if (nameEl) nameEl.textContent = state.name;
+
+    const roleBadge = document.getElementById('profile-preview-role-badge');
+    if (roleBadge) {
+        const isTeacher = state.role === 'teacher';
+        roleBadge.textContent = isTeacher ? 'Преподаватель' : 'Студент';
+        roleBadge.className = isTeacher 
+            ? 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300'
+            : 'px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-950 text-google-green dark:text-emerald-300';
+    }
+
+    const emailEl = document.getElementById('profile-preview-email');
+    const user = getCurrentUser();
+    if (emailEl) emailEl.textContent = user.email || '';
+}
+
+async function saveFullProfileChanges() {
+    const state = window.editingProfileState;
+    if (!state) return;
+
+    const user = getCurrentUser();
+    if (!user || isGuestUser()) return;
+
+    user.name = state.name.trim() || user.name;
+    user.role = state.role || 'student';
+    user.avatar = state.avatar || 'ИС';
+    user.bg = state.bg || 'from-blue-600 to-indigo-600';
+    user.photoUrl = state.photoUrl || '';
+    user.banner = state.banner || '';
+
+    // Update in appState accounts list
+    const accIdx = (appState.accounts || []).findIndex(a => a.id === user.id);
+    if (accIdx !== -1) {
+        appState.accounts[accIdx] = Object.assign({}, appState.accounts[accIdx], user);
+    }
+
+    persistState();
+    syncUserInterface();
+    if (typeof renderAllViews === 'function') renderAllViews();
+
+    triggerToast('Изменения профиля успешно сохранены!');
+
+    try {
+        await sendServerAction('/api/accounts/update', user);
+    } catch (e) {
+        console.warn('Profile save note', e);
+    }
 }
