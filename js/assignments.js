@@ -145,24 +145,15 @@ function initCreateAssignmentView(course, editAssign = null) {
 
     if (inputFile) {
         inputFile.onchange = async (e) => {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
-            let dataUrl = '#';
-            if (file.type.startsWith('image/')) {
-                try {
-                    dataUrl = await compressImage(file, 800, 800, 0.8);
-                } catch (_) {
-                    dataUrl = '#';
-                }
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            for (const file of files) {
+                const att = await readFileAsAttachment(file);
+                pendingCreateAttachments.push(att);
             }
-            pendingCreateAttachments.push({
-                type: 'file',
-                name: file.name,
-                url: dataUrl
-            });
             renderCreateAttachmentCards();
             inputFile.value = '';
-            triggerToast(`Файл "${file.name}" прикреплен!`);
+            triggerToast(files.length === 1 ? `Файл "${files[0].name}" прикреплен!` : `Прикреплено файлов: ${files.length}`);
         };
     }
 
@@ -170,6 +161,61 @@ function initCreateAssignmentView(course, editAssign = null) {
         btnSave.onclick = saveAssignmentWorkspace;
     }
 }
+
+async function readFileAsAttachment(file) {
+    let dataUrl = '';
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(file.name);
+    if (isImage) {
+        try {
+            if (typeof compressImage === 'function') {
+                dataUrl = await compressImage(file, 1200, 1200, 0.85);
+            }
+        } catch (_) {}
+    }
+    if (!dataUrl || dataUrl === '#') {
+        dataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result || '#');
+            reader.onerror = () => resolve('#');
+            reader.readAsDataURL(file);
+        });
+    }
+
+    let type = 'file';
+    if (isImage) type = 'image';
+    else if (file.type.includes('pdf') || /\.pdf$/i.test(file.name)) type = 'pdf';
+    else if (file.type.startsWith('video/') || /\.(mp4|webm|mov|avi)$/i.test(file.name)) type = 'video';
+
+    return {
+        type,
+        name: file.name,
+        url: dataUrl
+    };
+}
+
+window.openAttachmentResource = function(url, name) {
+    if (!url || url === '#') {
+        triggerToast('Файл недоступен', true);
+        return;
+    }
+    if (url.startsWith('data:image/')) {
+        const w = window.open('');
+        if (w) {
+            w.document.write(`<html><head><title>${name || 'Изображение'}</title><style>body{margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;}img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.5);}</style></head><body><img src="${url}"></body></html>`);
+            return;
+        }
+    }
+    if (url.startsWith('data:')) {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name || 'file';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+};
 
 function renderCreateAttachmentCards() {
     const container = document.getElementById('ca-pending-attachments-list');
@@ -180,22 +226,39 @@ function renderCreateAttachmentCards() {
         return;
     }
 
-    container.innerHTML = pendingCreateAttachments.map((att, i) => `
+    container.innerHTML = pendingCreateAttachments.map((att, i) => {
+        let iconHtml = '<i class="fa-solid fa-paperclip text-google-blue"></i>';
+        if (att.type === 'video') iconHtml = '<i class="fa-solid fa-video text-red-500"></i>';
+        else if (att.type === 'link') iconHtml = '<i class="fa-solid fa-link text-emerald-500"></i>';
+        else if (att.type === 'pdf') iconHtml = '<i class="fa-solid fa-file-pdf text-red-600"></i>';
+        else if (att.type === 'image' || (att.url && att.url.startsWith('data:image/'))) {
+            iconHtml = att.url && att.url.startsWith('data:image/')
+                ? `<img src="${att.url}" class="w-full h-full object-cover">`
+                : '<i class="fa-solid fa-image text-purple-500"></i>';
+        }
+
+        return `
         <div class="flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-gray-800 border border-google-border dark:border-google-darkBorder shadow-sm">
-            <div class="flex items-center space-x-3 truncate">
-                <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950 text-google-blue flex items-center justify-center shrink-0">
-                    <i class="fa-solid ${att.type === 'video' ? 'fa-video text-red-500' : (att.type === 'link' ? 'fa-link text-emerald-500' : 'fa-paperclip')}"></i>
+            <div class="flex items-center space-x-3 truncate flex-1 min-w-0 mr-2">
+                <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center shrink-0 overflow-hidden text-sm">
+                    ${iconHtml}
                 </div>
-                <div class="truncate">
+                <div class="truncate flex-1 min-w-0">
                     <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${att.name}</p>
-                    <p class="text-[10px] text-google-gray truncate">${att.url || 'Файл'}</p>
+                    <p class="text-[10px] text-google-gray truncate">${att.url && att.url.startsWith('data:') ? 'Файл прикреплен' : (att.url || 'Материал')}</p>
                 </div>
             </div>
-            <button onclick="pendingCreateAttachments.splice(${i}, 1); renderCreateAttachmentCards();" class="text-google-gray hover:text-red-500 p-1.5 transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div class="flex items-center space-x-1 shrink-0">
+                <button type="button" onclick="openAttachmentResource('${att.url}', '${att.name.replace(/'/g, "\\'")}')" class="text-google-gray hover:text-google-blue p-1.5 transition" title="Открыть / Просмотреть">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                </button>
+                <button type="button" onclick="pendingCreateAttachments.splice(${i}, 1); renderCreateAttachmentCards();" class="text-google-gray hover:text-red-500 p-1.5 transition" title="Удалить">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 let isSavingAssignment = false;
@@ -399,22 +462,35 @@ function renderFullAssignmentWorkspace(course, assign) {
         if (atts.length > 0) {
             matBox.classList.remove('hidden');
             matList.innerHTML = atts.map(att => {
-                let iconClass = 'fa-paperclip text-google-blue';
-                if (att.type === 'video') iconClass = 'fa-video text-red-500';
-                else if (att.type === 'link') iconClass = 'fa-link text-emerald-500';
-                else if (att.type === 'image' || (att.url && (att.url.startsWith('data:image/') || att.url.match(/\.(jpeg|jpg|gif|png|webp)/i)))) iconClass = 'fa-image text-purple-500';
+                const isImage = att.type === 'image' || (att.url && (att.url.startsWith('data:image/') || att.url.match(/\.(jpeg|jpg|gif|png|webp)/i)));
+                const isPdf = att.type === 'pdf' || (att.url && (att.url.includes('application/pdf') || att.url.match(/\.pdf/i)));
+                const isVideo = att.type === 'video';
+                const isLink = att.type === 'link';
+
+                let iconHtml = '<i class="fa-solid fa-paperclip text-google-blue"></i>';
+                if (isVideo) iconHtml = '<i class="fa-brands fa-youtube text-red-500 text-lg"></i>';
+                else if (isLink) iconHtml = '<i class="fa-solid fa-link text-emerald-500"></i>';
+                else if (isPdf) iconHtml = '<i class="fa-solid fa-file-pdf text-red-600 text-lg"></i>';
+                else if (isImage && att.url && att.url.startsWith('data:image/')) {
+                    iconHtml = `<img src="${att.url}" class="w-full h-full object-cover">`;
+                } else if (isImage) {
+                    iconHtml = '<i class="fa-solid fa-image text-purple-500"></i>';
+                }
+
+                const safeName = (att.name || 'Материал').replace(/'/g, "\\'");
+                const isDataUrl = Boolean(att.url && att.url.startsWith('data:'));
 
                 return `
-                <a href="${att.url || '#'}" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-google-border dark:border-google-darkBorder hover:border-google-blue dark:hover:border-google-blueDarkTheme transition group shadow-xs">
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-sm shrink-0">
-                        <i class="fa-solid ${iconClass}"></i>
+                <div onclick="openAttachmentResource('${att.url}', '${safeName}')" class="flex items-center space-x-3 p-3 rounded-2xl bg-gray-50 dark:bg-gray-800/80 border border-google-border dark:border-google-darkBorder hover:border-google-blue dark:hover:border-google-blueDarkTheme hover:shadow-sm transition group cursor-pointer shadow-xs">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-sm shrink-0 overflow-hidden shadow-2xs">
+                        ${iconHtml}
                     </div>
                     <div class="truncate flex-1 min-w-0">
                         <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme truncate">${att.name || 'Прикрепленный материал'}</p>
-                        <p class="text-[10px] text-google-gray truncate">${att.url && att.url.startsWith('data:') ? 'Локальный файл' : (att.url || '')}</p>
+                        <p class="text-[10px] text-google-gray truncate">${isDataUrl ? 'Нажмите для просмотра / скачивания' : (att.url || 'Материал')}</p>
                     </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square text-xs text-google-gray group-hover:text-google-blue shrink-0"></i>
-                </a>
+                    <i class="fa-solid ${isDataUrl ? 'fa-download' : 'fa-arrow-up-right-from-square'} text-xs text-google-gray group-hover:text-google-blue shrink-0"></i>
+                </div>
                 `;
             }).join('');
         } else {
