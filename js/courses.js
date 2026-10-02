@@ -213,6 +213,12 @@ function renderDashboard() {
                         ${course.code}
                     </span>
                     <div class="flex items-center space-x-2">
+                        ${!isMember && !isGuest ? `
+                            <button onclick="event.stopPropagation(); window.joinCourseDirectly('${course.code}')" title="Записаться на курс" class="px-2.5 py-1 rounded-lg bg-google-blue hover:bg-google-blueDark text-white font-medium text-[11px] shadow-sm transition flex items-center space-x-1">
+                                <i class="fa-solid fa-plus text-[10px]"></i>
+                                <span>Записаться</span>
+                            </button>
+                        ` : ''}
                         ${canArchive ? `
                             <button onclick="event.stopPropagation(); window.quickArchiveCourse('${course.id}')" title="Архивировать курс" class="p-1.5 px-2.5 rounded-lg text-google-gray hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-xs transition flex items-center space-x-1">
                                 <i class="fa-solid fa-box-archive text-[11px]"></i>
@@ -220,7 +226,7 @@ function renderDashboard() {
                             </button>
                         ` : ''}
                         <div class="flex items-center space-x-1.5 text-google-blue font-medium text-xs group-hover:translate-x-0.5 transition-transform">
-                            <span>Перейти</span>
+                            <span>${isMember ? 'Перейти' : 'Обзор'}</span>
                             <i class="fa-solid fa-arrow-right text-xs"></i>
                         </div>
                     </div>
@@ -235,6 +241,7 @@ function renderCurrentCourseView(course) {
 
     const user = getCurrentUser();
     const isTeacher = isCourseTeacher(course, user);
+    const isMember = (course.studentIds || []).includes(user.id) || isTeacher;
 
     // Hero banner container
     const heroBanner = document.getElementById('course-hero-banner');
@@ -295,6 +302,25 @@ function renderCurrentCourseView(course) {
                 `;
             } else {
                 restoreBtnContainer.innerHTML = '';
+            }
+        }
+    }
+
+    // Course Preview Banner (for users who are not yet members of this course)
+    const previewBanner = document.getElementById('course-preview-banner');
+    const previewJoinBtnContainer = document.getElementById('course-preview-join-btn-container');
+    if (previewBanner) {
+        previewBanner.classList.toggle('hidden', isMember || Boolean(course.isArchived));
+        if (previewJoinBtnContainer) {
+            if (!isMember && !course.isArchived) {
+                previewJoinBtnContainer.innerHTML = `
+                    <button onclick="window.joinCourseDirectly('${course.code}')" class="px-4 py-2 bg-google-blue hover:bg-google-blueDark text-white rounded-xl text-xs font-semibold shadow transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>Записаться на курс</span>
+                    </button>
+                `;
+            } else {
+                previewJoinBtnContainer.innerHTML = '';
             }
         }
     }
