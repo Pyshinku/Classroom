@@ -1955,17 +1955,48 @@
         </div>
     </div>
 
+    <!-- MODAL: TEACHER PRIVATE COMMENTS CHAT WITH STUDENT -->
+    <div id="modal-teacher-private-chat" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-lg shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4 flex flex-col max-h-[85vh]">
+            <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-3">
+                <div class="flex items-center space-x-2.5 truncate">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300 flex items-center justify-center text-xs font-bold shrink-0">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                    </div>
+                    <div class="truncate">
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate" id="teacher-chat-student-name">Личные комментарии</h3>
+                        <p class="text-[11px] text-google-gray">Приватная переписка со студентом по заданию</p>
+                    </div>
+                </div>
+                <button type="button" onclick="document.getElementById('modal-teacher-private-chat').classList.add('hidden')" class="text-google-gray hover:text-gray-800 dark:hover:text-gray-200 p-1.5 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Chat messages box -->
+            <div id="teacher-chat-messages-list" class="space-y-2 overflow-y-auto flex-1 p-2 custom-scrollbar min-h-[180px] max-h-[350px]"></div>
+
+            <!-- Chat input bar -->
+            <div class="flex items-center space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <input type="text" id="input-teacher-chat-comment" placeholder="Написать ответ студенту..." class="flex-1 border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-1 focus:ring-google-blue focus:outline-none">
+                <button id="btn-send-teacher-chat-comment" class="p-2.5 rounded-xl bg-google-blue hover:bg-google-blueDark text-white shadow transition" title="Отправить сообщение">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- GLOBAL IN-APP TOAST NOTIFICATION -->
     <div id="app-toast" class="fixed bottom-6 right-6 bg-gray-900/95 dark:bg-gray-100/95 text-white dark:text-gray-900 px-4 py-3 rounded-2xl shadow-2xl text-xs font-medium flex items-center space-x-2.5 transition-all duration-300 opacity-0 pointer-events-none z-50 transform translate-y-3">
         <span id="toast-icon" class="material-symbols-outlined text-green-400 dark:text-green-600 text-lg">check_circle</span>
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.8"></script>
-    <script src="js/notifications.js?v=2.0.8"></script>
-    <script src="js/auth.js?v=2.0.8"></script>
-    <script src="js/courses.js?v=2.0.8"></script>
-    <script src="js/assignments.js?v=2.0.8"></script>
-    <script src="js/app.js?v=2.0.8"></script>
+    <script src="js/state.js?v=2.0.9"></script>
+    <script src="js/notifications.js?v=2.0.9"></script>
+    <script src="js/auth.js?v=2.0.9"></script>
+    <script src="js/courses.js?v=2.0.9"></script>
+    <script src="js/assignments.js?v=2.0.9"></script>
+    <script src="js/app.js?v=2.0.9"></script>
 </body>
 </html>

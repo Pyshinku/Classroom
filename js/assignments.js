@@ -766,7 +766,12 @@ function renderFullAssignmentWorkspace(course, assign) {
                                     ${attsHtml}
                                 </div>
                             </div>
-                            <input type="number" min="0" max="${assign.points || 100}" value="${gradeVal}" placeholder="Балл" onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-google-blue">
+                            <div class="flex items-center space-x-1.5 shrink-0">
+                                <button type="button" onclick="openTeacherPrivateChat('${assign.id}', '${st.id}', '${st.name.replace(/'/g, "\\'")}')" class="p-2 rounded-xl border border-google-border dark:border-google-darkBorder hover:bg-blue-50 dark:hover:bg-blue-950/60 text-google-blue transition" title="Личные комментарии с этим студентом">
+                                    <i class="fa-solid fa-comment-dots text-xs"></i>
+                                </button>
+                                <input type="number" min="0" max="${assign.points || 100}" value="${gradeVal}" placeholder="Балл" onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-google-blue">
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -814,33 +819,272 @@ function renderFullAssignmentWorkspace(course, assign) {
         }
 
         initStudentWorkControls(course, assign);
+        initStudentPrivateComments(course, assign);
     }
 
     // Public Comments
-    renderAssignmentComments(assign);
+    initAssignmentPublicComments(course, assign);
 }
 
-function renderAssignmentComments(assign) {
-    const list = document.getElementById('assign-public-comments-list');
+function renderAssignmentPublicComments(assign) {
+    const list = document.getElementById('assign-full-comments-list');
     if (!list) return;
 
     const comms = assign.comments || [];
     if (comms.length === 0) {
-        list.innerHTML = '<p class="text-xs text-google-gray italic">Комментариев к заданию пока нет</p>';
+        list.innerHTML = '<p class="text-xs text-google-gray italic py-2">Комментариев курса по этому заданию пока нет</p>';
         return;
     }
 
-    list.innerHTML = comms.map(c => `
-        <div class="flex items-start space-x-2.5 text-xs">
-            <span class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 text-google-blue dark:text-blue-300 font-bold flex items-center justify-center text-[10px] shrink-0">
-                ${c.authorAvatar || 'С'}
-            </span>
+    list.innerHTML = comms.map(c => {
+        const avatarHtml = c.photoUrl
+            ? `<img src="${c.photoUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 shadow-xs">`
+            : `<span class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300 font-bold flex items-center justify-center text-[11px] shrink-0">${c.authorAvatar || 'П'}</span>`;
+
+        return `
+        <div class="flex items-start space-x-3 text-xs p-2 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/40 transition">
+            ${avatarHtml}
             <div class="flex-1 min-w-0">
-                <p class="font-semibold text-gray-900 dark:text-gray-100">${c.authorName} <span class="font-normal text-[10px] text-google-gray ml-1">${c.date || ''}</span></p>
-                <p class="text-gray-700 dark:text-gray-300">${c.text}</p>
+                <div class="flex items-center space-x-2">
+                    <p class="font-bold text-gray-900 dark:text-gray-100 truncate">${c.authorName}</p>
+                    <span class="text-[10px] text-google-gray shrink-0">${c.date || ''}</span>
+                </div>
+                <p class="text-gray-800 dark:text-gray-200 mt-0.5 leading-relaxed whitespace-pre-line">${c.text}</p>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+}
+
+function initAssignmentPublicComments(course, assign) {
+    const input = document.getElementById('input-assign-public-comment');
+    const sendBtn = document.getElementById('btn-send-assign-public-comment');
+
+    const handleSend = async () => {
+        if (!input) return;
+        const textVal = (input.value || '').trim();
+        if (!textVal) return;
+
+        const user = getCurrentUser();
+        const newComment = {
+            id: 'c_' + Date.now(),
+            authorId: user.id,
+            authorName: user.name,
+            authorAvatar: user.avatar || user.name[0],
+            photoUrl: user.photoUrl || null,
+            bg: user.bg || null,
+            date: new Date().toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            text: textVal
+        };
+
+        if (!assign.comments) assign.comments = [];
+        assign.comments.push(newComment);
+        persistState();
+        input.value = '';
+        renderAssignmentPublicComments(assign);
+        triggerToast('Комментарий курса добавлен');
+
+        await sendServerAction('/api/assignments/comments/add', {
+            assignmentId: assign.id,
+            courseId: course.id,
+            comment: newComment
+        });
+    };
+
+    if (sendBtn) sendBtn.onclick = handleSend;
+    if (input) {
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSend();
+            }
+        };
+    }
+
+    renderAssignmentPublicComments(assign);
+}
+
+function renderStudentPrivateComments(assign, studentId) {
+    const list = document.getElementById('assign-private-comments-list');
+    if (!list) return;
+
+    const comms = (assign.privateComments && assign.privateComments[studentId]) || [];
+    if (comms.length === 0) {
+        list.innerHTML = '<p class="text-[11px] text-google-gray italic py-1">Личных сообщений пока нет</p>';
+        return;
+    }
+
+    const myId = getCurrentUser().id;
+    list.innerHTML = comms.map(c => {
+        const isMe = c.authorId === myId;
+        return `
+        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} text-xs">
+            <div class="max-w-[85%] rounded-2xl p-2.5 ${isMe ? 'bg-google-blue text-white rounded-br-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-xs'} shadow-2xs">
+                <p class="text-[10px] font-semibold opacity-80 mb-0.5">${c.authorName} • ${c.date || ''}</p>
+                <p class="leading-relaxed whitespace-pre-line">${c.text}</p>
+            </div>
+        </div>
+        `;
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+}
+
+function initStudentPrivateComments(course, assign) {
+    const user = getCurrentUser();
+    const studentId = user.id;
+    const input = document.getElementById('input-assign-private-comment');
+    const sendBtn = document.getElementById('btn-send-assign-private-comment');
+
+    const handleSendPrivate = async () => {
+        if (!input) return;
+        const textVal = (input.value || '').trim();
+        if (!textVal) return;
+
+        const newComment = {
+            id: 'pc_' + Date.now(),
+            authorId: user.id,
+            authorName: user.name,
+            authorAvatar: user.avatar || user.name[0],
+            photoUrl: user.photoUrl || null,
+            date: new Date().toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            text: textVal
+        };
+
+        if (!assign.privateComments) assign.privateComments = {};
+        if (!assign.privateComments[studentId]) assign.privateComments[studentId] = [];
+        assign.privateComments[studentId].push(newComment);
+        persistState();
+        input.value = '';
+        renderStudentPrivateComments(assign, studentId);
+        triggerToast('Личное сообщение отправлено преподавателю');
+
+        await sendServerAction('/api/assignments/private-comments/add', {
+            assignmentId: assign.id,
+            studentId,
+            comment: newComment
+        });
+    };
+
+    if (sendBtn) sendBtn.onclick = handleSendPrivate;
+    if (input) {
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSendPrivate();
+            }
+        };
+    }
+
+    renderStudentPrivateComments(assign, studentId);
+}
+
+let currentTeacherChat = {
+    assignId: null,
+    studentId: null
+};
+
+window.openTeacherPrivateChat = function(assignId, studentId, studentName) {
+    currentTeacherChat.assignId = assignId;
+    currentTeacherChat.studentId = studentId;
+
+    const modal = document.getElementById('modal-teacher-private-chat');
+    const titleEl = document.getElementById('teacher-chat-student-name');
+    if (titleEl) titleEl.textContent = `Личные комментарии: ${studentName}`;
+    if (modal) modal.classList.remove('hidden');
+
+    renderTeacherChatMessages();
+
+    const input = document.getElementById('input-teacher-chat-comment');
+    const sendBtn = document.getElementById('btn-send-teacher-chat-comment');
+
+    const handleSendTeacherComment = async () => {
+        if (!input) return;
+        const textVal = (input.value || '').trim();
+        if (!textVal) return;
+
+        const assign = (appState.assignments || []).find(a => a.id === currentTeacherChat.assignId);
+        if (!assign) return;
+
+        const user = getCurrentUser();
+        const newComment = {
+            id: 'pc_' + Date.now(),
+            authorId: user.id,
+            authorName: user.name + ' (Преподаватель)',
+            authorAvatar: user.avatar || user.name[0],
+            photoUrl: user.photoUrl || null,
+            date: new Date().toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            text: textVal
+        };
+
+        if (!assign.privateComments) assign.privateComments = {};
+        if (!assign.privateComments[currentTeacherChat.studentId]) assign.privateComments[currentTeacherChat.studentId] = [];
+        assign.privateComments[currentTeacherChat.studentId].push(newComment);
+        persistState();
+        input.value = '';
+        renderTeacherChatMessages();
+        triggerToast('Ответ отправлен студенту');
+
+        await sendServerAction('/api/assignments/private-comments/add', {
+            assignmentId: assign.id,
+            studentId: currentTeacherChat.studentId,
+            comment: newComment
+        });
+    };
+
+    if (sendBtn) sendBtn.onclick = handleSendTeacherComment;
+    if (input) {
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSendTeacherComment();
+            }
+        };
+        input.focus();
+    }
+};
+
+function renderTeacherChatMessages() {
+    const list = document.getElementById('teacher-chat-messages-list');
+    if (!list || !currentTeacherChat.assignId || !currentTeacherChat.studentId) return;
+
+    const assign = (appState.assignments || []).find(a => a.id === currentTeacherChat.assignId);
+    if (!assign) return;
+
+    const comms = (assign.privateComments && assign.privateComments[currentTeacherChat.studentId]) || [];
+    if (comms.length === 0) {
+        list.innerHTML = '<p class="text-xs text-google-gray italic py-8 text-center">Переписка со студентом пока пуста. Напишите сообщение ниже.</p>';
+        return;
+    }
+
+    const myId = getCurrentUser().id;
+    list.innerHTML = comms.map(c => {
+        const isMe = c.authorId === myId;
+        return `
+        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} text-xs">
+            <div class="max-w-[85%] rounded-2xl p-2.5 ${isMe ? 'bg-google-blue text-white rounded-br-xs' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-xs'} shadow-2xs">
+                <p class="text-[10px] font-semibold opacity-80 mb-0.5">${c.authorName} • ${c.date || ''}</p>
+                <p class="leading-relaxed whitespace-pre-line">${c.text}</p>
+            </div>
+        </div>
+        `;
+    }).join('');
+    list.scrollTop = list.scrollHeight;
 }
 
 // TODO (Tasks) & Calendar Engine
