@@ -13,6 +13,45 @@ function setGoogleClientId(id) {
     if (typeof appState !== 'undefined') appState.googleClientId = id;
 }
 
+// Device-local authenticated accounts isolation (prevents showing other users from the shared database)
+const DEVICE_ACCOUNTS_KEY = 'google_classroom_device_known_accounts_v1';
+
+function getDeviceAccountIds() {
+    try {
+        const stored = localStorage.getItem(DEVICE_ACCOUNTS_KEY);
+        let ids = stored ? JSON.parse(stored) : [];
+        if (!Array.isArray(ids)) ids = [];
+        // Always include current active account if valid
+        const activeId = localStorage.getItem('google_classroom_active_account_id');
+        if (activeId && activeId !== 'usr_guest' && !ids.includes(activeId)) {
+            ids.push(activeId);
+            localStorage.setItem(DEVICE_ACCOUNTS_KEY, JSON.stringify(ids));
+        }
+        return ids;
+    } catch (e) {
+        return [];
+    }
+}
+
+function rememberDeviceAccountId(accId) {
+    if (!accId || accId === 'usr_guest') return;
+    try {
+        let ids = getDeviceAccountIds();
+        if (!ids.includes(accId)) {
+            ids.push(accId);
+            localStorage.setItem(DEVICE_ACCOUNTS_KEY, JSON.stringify(ids));
+        }
+    } catch (e) {}
+}
+
+function forgetDeviceAccountId(accId) {
+    if (!accId) return;
+    try {
+        let ids = getDeviceAccountIds().filter(id => id !== accId);
+        localStorage.setItem(DEVICE_ACCOUNTS_KEY, JSON.stringify(ids));
+    } catch (e) {}
+}
+
 // User State Checks
 function isGuestUser() {
     return !appState.activeAccountId || appState.activeAccountId === 'usr_guest';
@@ -202,27 +241,33 @@ function syncUserInterface() {
         if (createAssignBtn) createAssignBtn.classList.toggle('hidden', !isTeacher);
         if (changeThemeBtn) changeThemeBtn.classList.toggle('hidden', !isTeacher);
 
-        // Populate accounts switcher list in Popover
+        // Populate accounts switcher list in Popover (STRICTLY ISOLATED TO THIS DEVICE)
         const switchList = document.getElementById('menu-accounts-list');
         if (switchList) {
-            const otherAccounts = (appState.accounts || []).filter(acc => acc.id !== user.id);
+            const knownDeviceIds = getDeviceAccountIds();
+            const otherAccounts = (appState.accounts || []).filter(acc => acc.id !== user.id && knownDeviceIds.includes(acc.id));
             if (otherAccounts.length > 0) {
                 switchList.innerHTML = otherAccounts.map(acc => {
                     const avatarHtml = acc.photoUrl 
                         ? `<img src="${acc.photoUrl}" class="w-8 h-8 rounded-full object-cover shrink-0 shadow-sm">`
                         : `<div class="w-8 h-8 rounded-full bg-gradient-to-tr ${acc.bg || 'from-blue-600 to-indigo-600'} text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">${acc.avatar || 'П'}</div>`;
                     return `
-                    <button type="button" onclick="switchActiveAccount('${acc.id}')" class="w-full p-2 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700/60 flex items-center space-x-3 transition text-left group">
-                        ${avatarHtml}
-                        <div class="truncate flex-1">
-                            <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme">${acc.name}</p>
-                            <p class="text-[11px] text-google-gray dark:text-gray-400 truncate">${acc.email} • ${acc.role === 'teacher' ? 'Преподаватель' : 'Студент'}</p>
-                        </div>
-                    </button>
+                    <div class="flex items-center justify-between p-1 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700/60 transition group">
+                        <button type="button" onclick="switchActiveAccount('${acc.id}')" class="flex-1 p-1.5 flex items-center space-x-3 text-left min-w-0">
+                            ${avatarHtml}
+                            <div class="truncate flex-1">
+                                <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme truncate">${escapeHtml(acc.name)}</p>
+                                <p class="text-[11px] text-google-gray dark:text-gray-400 truncate">${escapeHtml(acc.email)} • ${acc.role === 'teacher' ? 'Преподаватель' : 'Студент'}</p>
+                            </div>
+                        </button>
+                        <button type="button" onclick="event.stopPropagation(); window.removeAccountFromDevice('${acc.id}')" class="p-2 text-google-gray hover:text-red-500 opacity-60 hover:opacity-100 transition rounded-xl" title="Удалить с этого устройства">
+                            <i class="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                    </div>
                     `;
                 }).join('');
             } else {
-                switchList.innerHTML = '<p class="text-[11px] text-google-gray p-2 text-center italic">Нет других сохраненных аккаунтов</p>';
+                switchList.innerHTML = '<p class="text-[11px] text-google-gray p-2 text-center italic">Нет других сохраненных аккаунтов на этом устройстве</p>';
             }
         }
     }
@@ -231,8 +276,21 @@ function syncUserInterface() {
     }
 }
 
+window.removeAccountFromDevice = function(accId) {
+    if (!accId) return;
+    forgetDeviceAccountId(accId);
+    syncUserInterface();
+    triggerToast('Аккаунт убран из списка на этом устройстве');
+};
+
 window.switchActiveAccount = function(accId) {
+    const knownDeviceIds = getDeviceAccountIds();
+    if (!knownDeviceIds.includes(accId) && accId !== 'usr_guest') {
+        triggerToast('Этот аккаунт не авторизован на текущем устройстве', true);
+        return;
+    }
     appState.activeAccountId = accId;
+    rememberDeviceAccountId(accId);
     persistState();
     syncUserInterface();
     const pop = document.getElementById('popover-user');
@@ -325,6 +383,7 @@ window.handleAuthenticGoogleLogin = async function(profile) {
         if (!appState.accounts) appState.accounts = [];
         appState.accounts.push(newAcc);
         appState.activeAccountId = newAcc.id;
+        rememberDeviceAccountId(newAcc.id);
         persistState();
         syncUserInterface();
         if (typeof renderAllViews === 'function') renderAllViews();
@@ -340,6 +399,7 @@ window.handleAuthenticGoogleLogin = async function(profile) {
         acc.name = name;
         if (photoUrl) acc.photoUrl = photoUrl;
         appState.activeAccountId = acc.id;
+        rememberDeviceAccountId(acc.id);
         persistState();
         syncUserInterface();
         if (typeof renderAllViews === 'function') renderAllViews();
@@ -479,6 +539,7 @@ window.submitManualLogin = async function() {
     }
 
     appState.activeAccountId = acc.id;
+    rememberDeviceAccountId(acc.id);
     persistState();
     syncUserInterface();
     const modal = document.getElementById('modal-auth');
@@ -531,6 +592,7 @@ window.submitManualRegister = async function() {
     if (!appState.accounts) appState.accounts = [];
     appState.accounts.push(newAcc);
     appState.activeAccountId = newAcc.id;
+    rememberDeviceAccountId(newAcc.id);
     persistState();
     syncUserInterface();
 
