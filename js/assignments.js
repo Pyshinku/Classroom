@@ -400,6 +400,222 @@ window.saveStudentGrade = async function(assignId, studentId, gradeVal) {
     });
 };
 
+let studentPendingAttachments = [];
+
+function renderSubmittedAttachmentsHtml(sub) {
+    const atts = (sub && sub.attachments) || [];
+    let html = `
+        <div class="space-y-2">
+            <p class="font-bold text-xs text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Сдано: ${sub.submittedAt || ''}</span>
+            </p>
+    `;
+    if (atts.length > 0) {
+        html += `<div class="space-y-1.5 pt-1">`;
+        atts.forEach(att => {
+            const isImage = att.type === 'image' || (att.url && (att.url.startsWith('data:image/') || att.url.match(/\.(jpeg|jpg|gif|png|webp)/i)));
+            const isPdf = att.type === 'pdf' || (att.url && (att.url.includes('application/pdf') || att.url.match(/\.pdf/i)));
+            const isVideo = att.type === 'video';
+            const isLink = att.type === 'link';
+
+            let iconHtml = '<i class="fa-solid fa-paperclip text-google-blue"></i>';
+            if (isVideo) iconHtml = '<i class="fa-brands fa-youtube text-red-500"></i>';
+            else if (isLink) iconHtml = '<i class="fa-solid fa-link text-emerald-500"></i>';
+            else if (isPdf) iconHtml = '<i class="fa-solid fa-file-pdf text-red-600"></i>';
+            else if (isImage && att.url && att.url.startsWith('data:image/')) {
+                iconHtml = `<img src="${att.url}" class="w-6 h-6 rounded object-cover">`;
+            } else if (isImage) {
+                iconHtml = '<i class="fa-solid fa-image text-purple-500"></i>';
+            }
+
+            const safeName = (att.name || 'Вложение').replace(/'/g, "\\'");
+            html += `
+            <div onclick="openAttachmentResource('${att.url}', '${safeName}')" class="flex items-center space-x-2.5 p-2 rounded-xl bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-800/80 cursor-pointer hover:border-google-blue dark:hover:border-google-blueDarkTheme transition group shadow-2xs">
+                <div class="w-6 h-6 rounded flex items-center justify-center shrink-0 overflow-hidden text-xs">
+                    ${iconHtml}
+                </div>
+                <span class="text-xs font-medium truncate flex-1 text-gray-800 dark:text-gray-200 group-hover:text-google-blue dark:group-hover:text-google-blueDarkTheme">${att.name || 'Прикрепленный файл'}</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-google-gray group-hover:text-google-blue"></i>
+            </div>
+            `;
+        });
+        html += `</div>`;
+    }
+    html += `</div>`;
+    return html;
+}
+
+function renderStudentPendingAttachments() {
+    const container = document.getElementById('student-pending-attachments');
+    if (!container) return;
+
+    if (studentPendingAttachments.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = studentPendingAttachments.map((att, i) => {
+        let iconHtml = '<i class="fa-solid fa-paperclip text-google-blue"></i>';
+        if (att.type === 'video') iconHtml = '<i class="fa-solid fa-video text-red-500"></i>';
+        else if (att.type === 'link') iconHtml = '<i class="fa-solid fa-link text-emerald-500"></i>';
+        else if (att.type === 'pdf') iconHtml = '<i class="fa-solid fa-file-pdf text-red-600"></i>';
+        else if (att.type === 'image' || (att.url && att.url.startsWith('data:image/'))) {
+            iconHtml = att.url && att.url.startsWith('data:image/')
+                ? `<img src="${att.url}" class="w-full h-full object-cover">`
+                : '<i class="fa-solid fa-image text-purple-500"></i>';
+        }
+
+        const safeName = (att.name || 'Вложение').replace(/'/g, "\\'");
+        const isDataUrl = Boolean(att.url && att.url.startsWith('data:'));
+
+        return `
+        <div class="flex items-center justify-between p-2.5 rounded-2xl bg-gray-50 dark:bg-gray-800/90 border border-google-border dark:border-google-darkBorder shadow-2xs">
+            <div class="flex items-center space-x-2.5 truncate flex-1 min-w-0 mr-2 cursor-pointer" onclick="openAttachmentResource('${att.url}', '${safeName}')">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950 flex items-center justify-center shrink-0 overflow-hidden text-xs">
+                    ${iconHtml}
+                </div>
+                <div class="truncate flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${att.name}</p>
+                    <p class="text-[10px] text-google-gray truncate">${isDataUrl ? 'Прикрепленный файл' : (att.url || 'Ссылка')}</p>
+                </div>
+            </div>
+            <button type="button" onclick="studentPendingAttachments.splice(${i}, 1); renderStudentPendingAttachments();" class="text-google-gray hover:text-red-500 p-1.5 transition shrink-0" title="Удалить файл">
+                <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+        </div>
+        `;
+    }).join('');
+}
+
+function initStudentWorkControls(course, assign) {
+    const user = getCurrentUser();
+    const btnAdd = document.getElementById('btn-student-add-attachment');
+    const dropdown = document.getElementById('dropdown-student-add-attachment');
+    const pickFileBtn = document.getElementById('btn-student-pick-file');
+    const pickLinkBtn = document.getElementById('btn-student-pick-link');
+    const fileInput = document.getElementById('input-student-file-upload');
+    const btnSubmit = document.getElementById('assign-btn-submit-work');
+    const btnUnsubmit = document.getElementById('assign-btn-unsubmit-work');
+
+    // Dropdown toggle
+    if (btnAdd && dropdown) {
+        btnAdd.onclick = (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        };
+        const closeDropdown = (e) => {
+            if (!dropdown.contains(e.target) && e.target !== btnAdd) {
+                dropdown.classList.add('hidden');
+            }
+        };
+        document.removeEventListener('click', closeDropdown);
+        document.addEventListener('click', closeDropdown);
+    }
+
+    // Attach File
+    if (pickFileBtn && fileInput) {
+        pickFileBtn.onclick = () => {
+            if (dropdown) dropdown.classList.add('hidden');
+            fileInput.click();
+        };
+    }
+
+    if (fileInput) {
+        fileInput.onchange = async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            for (const file of files) {
+                const att = await readFileAsAttachment(file);
+                studentPendingAttachments.push(att);
+            }
+            fileInput.value = '';
+            renderStudentPendingAttachments();
+            triggerToast(files.length === 1 ? `Файл "${files[0].name}" прикреплен к работе` : `Прикреплено файлов: ${files.length}`);
+        };
+    }
+
+    // Attach Link
+    if (pickLinkBtn) {
+        pickLinkBtn.onclick = () => {
+            if (dropdown) dropdown.classList.add('hidden');
+            const url = prompt('Введите ссылку (URL) на вашу работу:', 'https://');
+            if (url) {
+                const label = prompt('Название или краткое описание ссылки:', 'Моя выполненная работа') || url;
+                studentPendingAttachments.push({
+                    type: 'link',
+                    name: label,
+                    url
+                });
+                renderStudentPendingAttachments();
+                triggerToast('Ссылка прикреплена к работе');
+            }
+        };
+    }
+
+    // Submit work
+    if (btnSubmit) {
+        btnSubmit.onclick = async () => {
+            if (studentPendingAttachments.length === 0) {
+                if (!confirm('Вы не прикрепили файлы к работе. Сдать задание без вложений?')) {
+                    return;
+                }
+            }
+            if (!assign.submissions) assign.submissions = {};
+            const nowStr = new Date().toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            assign.submissions[user.id] = {
+                submittedAt: nowStr,
+                attachments: [...studentPendingAttachments],
+                grade: assign.submissions[user.id] ? assign.submissions[user.id].grade : null
+            };
+            studentPendingAttachments = [];
+            persistState();
+            triggerToast('Работа успешно сдана!');
+
+            await sendServerAction('/api/assignments/submit', {
+                assignmentId: assign.id,
+                userId: user.id,
+                submittedAt: nowStr,
+                attachments: assign.submissions[user.id].attachments
+            });
+
+            renderFullAssignmentWorkspace(course, assign);
+        };
+    }
+
+    // Unsubmit work
+    if (btnUnsubmit) {
+        btnUnsubmit.onclick = async () => {
+            if (!confirm('Отменить отправку задания? Вы сможете изменить прикрепленные файлы и сдать работу заново.')) {
+                return;
+            }
+            const existingSub = assign.submissions && assign.submissions[user.id];
+            if (existingSub) {
+                studentPendingAttachments = [...(existingSub.attachments || [])];
+                existingSub.submittedAt = null;
+            }
+            persistState();
+            triggerToast('Отправка работы отменена');
+
+            await sendServerAction('/api/assignments/unsubmit', {
+                assignmentId: assign.id,
+                userId: user.id
+            });
+
+            renderFullAssignmentWorkspace(course, assign);
+        };
+    }
+
+    renderStudentPendingAttachments();
+}
+
 function renderFullAssignmentWorkspace(course, assign) {
     if (!course || !assign) return;
 
@@ -530,13 +746,24 @@ function renderFullAssignmentWorkspace(course, assign) {
                     const sub = subs[st.id];
                     const isSub = Boolean(sub && sub.submittedAt);
                     const gradeVal = sub && sub.grade !== undefined && sub.grade !== null ? sub.grade : '';
+                    const studentAtts = (sub && sub.attachments) || [];
+                    const attsHtml = studentAtts.length > 0 ? `
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            ${studentAtts.map(a => {
+                                const safeName = (a.name || 'Файл').replace(/'/g, "\\'");
+                                return `<button type="button" onclick="openAttachmentResource('${a.url}', '${safeName}')" class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/60 text-[10px] text-google-blue dark:text-blue-300 hover:underline max-w-[150px] truncate"><i class="fa-solid fa-paperclip text-[9px]"></i><span class="truncate">${a.name}</span></button>`;
+                            }).join('')}
+                        </div>
+                    ` : '';
+
                     return `
                         <div class="p-3 rounded-2xl border border-google-border dark:border-google-darkBorder flex items-center justify-between space-x-2 bg-gray-50/50 dark:bg-gray-800/40">
                             <div class="flex items-center space-x-2.5 truncate flex-1 min-w-0">
                                 <span class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 font-bold flex items-center justify-center text-xs shrink-0">${st.avatar || 'С'}</span>
-                                <div class="truncate">
+                                <div class="truncate flex-1 min-w-0">
                                     <p class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate">${st.name}</p>
                                     <p class="text-[10px] ${isSub ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-google-gray'}">${isSub ? `Сдано: ${sub.submittedAt}` : 'Не сдано'}</p>
+                                    ${attsHtml}
                                 </div>
                             </div>
                             <input type="number" min="0" max="${assign.points || 100}" value="${gradeVal}" placeholder="Балл" onchange="saveStudentGrade('${assign.id}', '${st.id}', this.value)" class="w-16 px-2 py-1 border border-google-border dark:border-google-darkBorder rounded-xl text-xs font-bold text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-google-blue">
@@ -566,7 +793,7 @@ function renderFullAssignmentWorkspace(course, assign) {
             }
             if (formBox) formBox.classList.add('hidden');
             if (submittedBox) submittedBox.classList.remove('hidden');
-            if (submittedText) submittedText.textContent = `Сдано ${sub.submittedAt || ''}`;
+            if (submittedText) submittedText.innerHTML = renderSubmittedAttachmentsHtml(sub);
             if (submittedGradeBox) submittedGradeBox.textContent = `Ваш результат: ${sub.grade} из ${assign.points || 100} баллов`;
         } else if (isSubmitted) {
             if (statusBadge) {
@@ -575,7 +802,7 @@ function renderFullAssignmentWorkspace(course, assign) {
             }
             if (formBox) formBox.classList.add('hidden');
             if (submittedBox) submittedBox.classList.remove('hidden');
-            if (submittedText) submittedText.textContent = `Сдано ${sub.submittedAt || ''}`;
+            if (submittedText) submittedText.innerHTML = renderSubmittedAttachmentsHtml(sub);
             if (submittedGradeBox) submittedGradeBox.textContent = 'Ожидает проверки преподавателем';
         } else {
             if (statusBadge) {
@@ -585,6 +812,8 @@ function renderFullAssignmentWorkspace(course, assign) {
             if (formBox) formBox.classList.remove('hidden');
             if (submittedBox) submittedBox.classList.add('hidden');
         }
+
+        initStudentWorkControls(course, assign);
     }
 
     // Public Comments
