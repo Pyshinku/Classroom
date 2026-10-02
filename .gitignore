@@ -1,0 +1,19 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.bak
+
+# Databases & logs
+classroom.db
+classroom.db-shm
+classroom.db-wal
+database.json
+
+# Environment Secrets
+.env
+.env.local
+
+# Operating System
+.DS_Store
+Thumbs.db

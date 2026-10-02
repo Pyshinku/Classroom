@@ -1,0 +1,102 @@
+body {
+    font-family: 'Google Sans', Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    user-select: none;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(150, 150, 150, 0.35);
+    border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(150, 150, 150, 0.6);
+}
+.tab-indicator {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.tab-indicator.active {
+    color: #1a73e8 !important;
+    font-weight: 600;
+}
+.dark .tab-indicator.active {
+    color: #8ab4f8 !important;
+}
+.tab-indicator.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #1a73e8;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+.dark .tab-indicator.active::after {
+    background-color: #8ab4f8;
+}
+.course-card-bg {
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.4s ease;
+}
+.course-card:hover .course-card-bg {
+    transform: scale(1.05);
+}
+
+/* Professional Dark Theme Palette & Overrides */
+html.dark {
+    color-scheme: dark;
+    background-color: #0d1117;
+    color: #f0f6fc;
+}
+html.dark body {
+    background-color: #0d1117;
+    color: #f0f6fc;
+}
+html.dark .bg-white {
+    background-color: #161b22 !important;
+}
+html.dark .bg-gray-50, html.dark .bg-gray-100 {
+    background-color: #21262d !important;
+}
+html.dark .border-google-border, 
+html.dark .border-gray-100, 
+html.dark .border-gray-200, 
+html.dark .border-gray-300 {
+    border-color: #30363d !important;
+}
+html.dark input, html.dark textarea, html.dark select {
+    background-color: #0d1117 !important;
+    border-color: #30363d !important;
+    color: #f0f6fc !important;
+}
+html.dark input:focus, html.dark textarea:focus, html.dark select:focus {
+    border-color: #58a6ff !important;
+}
+html.dark .text-gray-900, html.dark .text-gray-800 {
+    color: #f0f6fc !important;
+}
+html.dark .text-google-gray, html.dark .text-gray-600, html.dark .text-gray-500 {
+    color: #8b949e !important;
+}
+html.dark .hover\:bg-gray-100:hover, html.dark .hover\:bg-gray-50:hover {
+    background-color: #30363d !important;
+}
+#sidebar {
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s ease;
+}
+.sidebar-course-badge {
+    transition: transform 0.2s ease;
+}
+.sidebar-item:hover .sidebar-course-badge {
+    transform: scale(1.1);
+}

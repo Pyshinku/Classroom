@@ -1,0 +1,2244 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Класс — Образовательная платформа</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts & Material Symbols Outlined -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- Font Awesome 6 Icons from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        google: {
+                            blue: '#1a73e8',
+                            blueDark: '#1557b0',
+                            blueLight: '#e8f0fe',
+                            blueDarkTheme: '#58a6ff',
+                            green: '#1e8e3e',
+                            greenLight: '#e6f4ea',
+                            yellow: '#f9ab00',
+                            yellowLight: '#fef7e0',
+                            red: '#d93025',
+                            redLight: '#fce8e6',
+                            surface: '#ffffff',
+                            bg: '#f8f9fa',
+                            text: '#202124',
+                            gray: '#5f6368',
+                            border: '#dadce0',
+                            darkBg: '#0d1117',
+                            darkSurface: '#161b22',
+                            darkCard: '#21262d',
+                            darkBorder: '#30363d',
+                            darkText: '#f0f6fc',
+                            darkSubtext: '#8b949e'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Google Sans"', 'Roboto', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+        <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="h-full flex flex-col overflow-hidden bg-google-bg dark:bg-google-darkBg text-google-text dark:text-google-darkText select-none transition-colors duration-200">
+
+    <!-- MAIN APPLICATION APP BAR -->
+    <header class="h-16 border-b border-google-border dark:border-google-darkBorder bg-white dark:bg-google-darkSurface flex items-center justify-between px-3 sm:px-5 shrink-0 z-40 transition-colors">
+        <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <!-- 3-Bars Hamburger Button -->
+            <button id="btn-sidebar-toggle" aria-label="Главное меню" class="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:scale-95 text-google-gray dark:text-gray-300 transition-all flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">menu</span>
+            </button>
+
+            <!-- Brand Logo -->
+            <div id="btn-brand" class="flex items-center space-x-2.5 cursor-pointer group shrink-0" title="На главную">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-500 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </div>
+                <span class="text-xl font-medium tracking-tight text-gray-800 dark:text-gray-100 hidden sm:inline-block">Класс</span>
+            </div>
+
+            <!-- Breadcrumbs Navigation -->
+            <div id="course-header-breadcrumbs" class="hidden items-center space-x-2 text-sm text-google-gray dark:text-gray-400 pl-1 sm:pl-3 truncate">
+                <button id="btn-breadcrumb-back" class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 flex items-center justify-center" title="Назад">
+                    <span class="material-symbols-outlined text-xl">arrow_back</span>
+                </button>
+                <span class="material-symbols-outlined text-base">chevron_right</span>
+                <span id="breadcrumb-course-title" class="font-medium text-gray-900 dark:text-gray-100 truncate max-w-[120px] sm:max-w-xs md:max-w-sm cursor-pointer hover:underline" title="Перейти к ленте курса"></span>
+                <span id="breadcrumb-sub-separator" class="material-symbols-outlined text-base hidden">chevron_right</span>
+                <span id="breadcrumb-sub-title" class="font-medium text-gray-600 dark:text-gray-300 truncate max-w-[120px] sm:max-w-xs hidden"></span>
+            </div>
+        </div>
+
+        <!-- Center Course Navigation Tabs (Active inside course view on Desktop) -->
+        <nav id="course-main-tabs" class="hidden h-full items-center space-x-1 lg:space-x-3 shrink-0">
+            <button data-tab="stream" class="tab-indicator active h-full px-3.5 lg:px-4 text-sm font-medium flex items-center space-x-2 transition-colors">
+                <i class="fa-solid fa-comments text-base"></i>
+                <span>Лента</span>
+            </button>
+            <button data-tab="classwork" class="tab-indicator h-full px-3.5 lg:px-4 text-sm font-medium text-google-gray dark:text-gray-400 flex items-center space-x-2 transition-colors hover:text-google-text dark:hover:text-white">
+                <i class="fa-solid fa-clipboard-list text-base"></i>
+                <span>Задания</span>
+            </button>
+            <button data-tab="people" class="tab-indicator h-full px-3.5 lg:px-4 text-sm font-medium text-google-gray dark:text-gray-400 flex items-center space-x-2 transition-colors hover:text-google-text dark:hover:text-white">
+                <i class="fa-solid fa-users text-base"></i>
+                <span>Пользователи</span>
+            </button>
+            <button id="tab-btn-grades" data-tab="grades" class="tab-indicator h-full px-3.5 lg:px-4 text-sm font-medium text-google-gray dark:text-gray-400 flex items-center space-x-2 transition-colors hover:text-google-text dark:hover:text-white">
+                <i class="fa-solid fa-square-poll-vertical text-base"></i>
+                <span>Оценки</span>
+            </button>
+        </nav>
+
+        <!-- Right Quick Actions -->
+        <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+            <!-- Search bar -->
+            <div class="relative hidden xl:flex items-center">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-google-gray dark:text-gray-400 text-base pointer-events-none flex items-center justify-center">search</span>
+                <input id="input-global-search" type="text" placeholder="Поиск курсов и заданий..." class="w-48 xl:w-60 pl-9 pr-3 py-2 text-xs bg-gray-100 dark:bg-gray-800 border border-transparent rounded-full focus:bg-white dark:focus:bg-gray-700 focus:border-google-blue dark:focus:border-google-blueDarkTheme focus:outline-none transition dark:text-gray-100 placeholder:text-gray-400">
+            </div>
+
+            <!-- Server Connection Status Chip -->
+            <button id="btn-server-status" title="Статус сервера базы данных и подключение" class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium border transition-colors bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800 hover:opacity-90">
+                <span id="server-status-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="server-status-label" class="hidden md:inline font-mono">Синхронизация</span>
+            </button>
+
+            <!-- Dark / Light Mode Switch -->
+            
+            <!-- In-App Notifications Bell (Requirement 8) -->
+            <div class="relative">
+                <button id="btn-header-notifications" aria-label="Уведомления" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-google-gray dark:text-gray-300 transition relative">
+                    <i class="fa-regular fa-bell text-lg"></i>
+                    <span id="header-notifications-badge" class="hidden absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-900"></span>
+                </button>
+                <div id="popover-notifications" class="hidden absolute right-0 mt-2.5 w-80 sm:w-96 bg-white dark:bg-google-darkSurface rounded-3xl shadow-2xl border border-google-border dark:border-google-darkBorder p-4 z-50 space-y-3 animate-in fade-in duration-150">
+                    <div class="flex items-center justify-between pb-2 border-b border-google-border dark:border-google-darkBorder">
+                        <h4 class="font-bold text-sm text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                            <i class="fa-solid fa-bell text-google-blue"></i>
+                            <span>Уведомления</span>
+                        </h4>
+                        <button onclick="markAllNotificationsRead()" class="text-[11px] text-google-blue hover:underline">Прочитать все</button>
+                    </div>
+                    <div id="header-notifications-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </div>
+
+            <!-- Unauthenticated Register Button (Requirement 0) -->
+            <button id="btn-header-register" onclick="window.navigateTo('google-auth')" class="hidden px-4 py-2 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-full shadow-md flex items-center space-x-2 transition cursor-pointer" title="Зарегистрироваться в Google Classroom">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
+                <span>Зарегистрироваться</span>
+            </button>
+
+            <!-- Guest Mode Badge (Item 3) -->
+            <span id="header-guest-badge" class="hidden px-2.5 py-1 text-[11px] font-medium bg-gray-100 dark:bg-gray-800 text-google-gray rounded-full">Режим гостя</span>
+
+    
+            <button id="btn-theme-toggle" aria-label="Сменить тему" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 transition">
+                <span id="theme-icon" class="material-symbols-outlined text-xl">dark_mode</span>
+            </button>
+
+            <!-- Quick Action (+) Dropdown for Course Create/Join -->
+            <div class="relative">
+                <button id="btn-plus-menu" aria-label="Создать или записаться на курс" class="p-2 sm:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 active:scale-95 transition">
+                    <span class="material-symbols-outlined text-2xl">add</span>
+                </button>
+                <div id="popover-plus" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-google-darkSurface rounded-2xl shadow-xl border border-google-border dark:border-google-darkBorder py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <button id="btn-action-join-class" class="w-full px-4 py-2.5 text-left text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 transition">
+                        <i class="fa-solid fa-key text-google-blue text-base w-5"></i>
+                        <span>Присоединиться к курсу</span>
+                    </button>
+                    <button id="btn-action-create-class" class="w-full px-4 py-2.5 text-left text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 transition">
+                        <i class="fa-solid fa-plus-circle text-google-green text-base w-5"></i>
+                        <span>Создать новый курс</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Multi-User Account Avatar & Dropdown -->
+            <div class="relative ml-1">
+                <button id="btn-user-avatar" aria-label="Меню аккаунтов" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full text-white font-medium flex items-center justify-center text-xs shadow ring-2 ring-transparent hover:ring-google-blue/40 transition overflow-hidden">
+                    <span id="header-avatar-initials">ИС</span>
+                </button>
+
+                <!-- Google Account Switcher Modal / Popover -->
+                <div id="popover-user" class="hidden absolute right-0 mt-2.5 w-80 sm:w-96 bg-white dark:bg-google-darkSurface rounded-3xl shadow-2xl border border-google-border dark:border-google-darkBorder p-4 z-50 space-y-3">
+                    <div class="text-center pb-3 border-b border-google-border dark:border-google-darkBorder">
+                        <div class="relative w-16 h-16 mx-auto mb-2">
+                            <div id="menu-avatar-badge" class="w-16 h-16 rounded-full text-white text-xl font-bold flex items-center justify-center shadow-lg ring-4 ring-blue-100 dark:ring-blue-900/40">
+                                ИС
+                            </div>
+                        </div>
+                        <h4 id="menu-user-name" class="font-bold text-sm text-gray-900 dark:text-gray-100">Пользователь</h4>
+                        <p id="menu-user-email" class="text-xs text-google-gray dark:text-gray-400">user@school.local</p>
+                        <div class="mt-2.5 flex items-center justify-center space-x-2">
+                            <span id="menu-user-role-badge" class="px-3 py-0.5 text-[11px] font-semibold rounded-full bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300">
+                                Преподаватель
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Other accounts switch list -->
+                    <div>
+                        <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-google-gray dark:text-gray-400 px-2 mb-2">
+                            <span>Переключить аккаунт</span>
+                            <span class="text-[10px] lowercase text-google-blue font-normal cursor-pointer" onclick="openAuthModal('login')">войти в другой</span>
+                        </div>
+                        <div id="menu-accounts-list" class="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1"></div>
+                    </div>
+
+                    <!-- Manage and Add Account buttons -->
+                    <div class="pt-2 border-t border-google-border dark:border-google-darkBorder space-y-1">
+                        <button id="btn-menu-settings-profile" onclick="window.navigateTo('profileSettings')" class="w-full py-2.5 px-3 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-google-blue dark:text-google-blueDarkTheme text-xs font-semibold flex items-center space-x-3 transition">
+                            <i class="fa-solid fa-gear text-base w-5 text-center"></i>
+                            <span>Настроить профиль</span>
+                        </button>
+                        <button id="btn-trigger-add-account" onclick="window.navigateTo('google-auth')" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
+                            <i class="fa-solid fa-user-plus text-base w-5 text-center"></i>
+                            <span>Добавить Google аккаунт</span>
+                        </button>
+                        <button id="btn-menu-guest-mode" onclick="enableGuestMode()" class="w-full py-2 px-3 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 text-xs font-medium flex items-center space-x-3 transition">
+                            <i class="fa-regular fa-circle-user text-base w-5 text-center"></i>
+                            <span>Гостевой режим</span>
+                        </button>
+                        <button id="btn-menu-logout" onclick="enableGuestMode()" class="w-full py-2 px-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-950/30 text-rose-600 dark:text-rose-400 text-xs font-medium flex items-center space-x-3 transition">
+                            <i class="fa-solid fa-arrow-right-from-bracket text-base w-5 text-center"></i>
+                            <span>Выйти из аккаунта</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE SECONDARY TABS BAR -->
+    <div id="course-mobile-tabs" class="hidden md:hidden bg-white dark:bg-google-darkSurface border-b border-google-border dark:border-google-darkBorder flex items-center justify-around px-2 z-30 shrink-0">
+        <button data-tab="stream" class="tab-indicator active py-2.5 px-3 text-xs font-medium flex items-center space-x-1.5 transition-colors">
+            <i class="fa-solid fa-comments"></i>
+            <span>Лента</span>
+        </button>
+        <button data-tab="classwork" class="tab-indicator py-2.5 px-3 text-xs font-medium text-google-gray dark:text-gray-400 flex items-center space-x-1.5 transition-colors">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <span>Задания</span>
+        </button>
+        <button data-tab="people" class="tab-indicator py-2.5 px-3 text-xs font-medium text-google-gray dark:text-gray-400 flex items-center space-x-1.5 transition-colors">
+            <i class="fa-solid fa-users"></i>
+            <span>Люди</span>
+        </button>
+        <button id="tab-btn-grades-mobile" data-tab="grades" class="tab-indicator py-2.5 px-3 text-xs font-medium text-google-gray dark:text-gray-400 flex items-center space-x-1.5 transition-colors">
+            <i class="fa-solid fa-square-poll-vertical"></i>
+            <span>Оценки</span>
+        </button>
+    </div>
+
+    <!-- WORKSPACE WRAPPER -->
+    <div class="flex flex-1 overflow-hidden relative">
+
+        <!-- Mobile Backdrop / Overlay for Drawer -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden transition-opacity duration-200"></div>
+
+        <!-- SIDEBAR DRAWER -->
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-30 w-72 bg-white dark:bg-google-darkSurface border-r border-google-border dark:border-google-darkBorder flex flex-col transform -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none transition-all duration-200 select-none">
+            
+            <!-- Mobile Header inside Drawer -->
+            <div class="h-16 flex lg:hidden items-center justify-between px-4 border-b border-google-border dark:border-google-darkBorder">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-google-blue text-white flex items-center justify-center">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <span class="font-medium text-base">Меню Класс</span>
+                </div>
+                <button id="btn-sidebar-close" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Primary Navigation Links -->
+            <div class="p-3 border-b border-google-border dark:border-google-darkBorder space-y-1">
+                <button id="nav-btn-home" class="sidebar-item w-full flex items-center space-x-4 px-4 py-3 rounded-r-full text-google-blue dark:text-google-blueDarkTheme bg-blue-50 dark:bg-blue-950/40 font-medium text-sm transition">
+                    <i class="fa-solid fa-house text-base w-5 text-center"></i>
+                    <span class="sidebar-label truncate">Главная (Курсы)</span>
+                </button>
+                <button id="nav-btn-calendar" class="sidebar-item w-full flex items-center space-x-4 px-4 py-3 rounded-r-full text-google-gray dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-sm transition">
+                    <i class="fa-solid fa-calendar-days text-base w-5 text-center"></i>
+                    <span class="sidebar-label truncate">Календарь</span>
+                </button>
+                <button id="nav-btn-todo" class="sidebar-item w-full flex items-center space-x-4 px-4 py-3 rounded-r-full text-google-gray dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-sm transition">
+                    <i class="fa-solid fa-list-check text-base w-5 text-center"></i>
+                    <span class="sidebar-label truncate">Список задач</span>
+                </button>
+                <button id="nav-btn-chats" class="sidebar-item w-full flex items-center space-x-4 px-4 py-3 rounded-r-full text-google-gray dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-sm transition group">
+                    <i class="fa-solid fa-paper-plane text-base w-5 text-center text-sky-500 group-hover:scale-110 transition-transform"></i>
+                    <span class="sidebar-label truncate">Чаты</span>
+                </button>
+            </div>
+
+            <!-- Dynamic Course Sections inside Sidebar -->
+            <div id="sidebar-courses-container" class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
+                <!-- Teaching section -->
+                <div id="sidebar-teaching-section">
+                    <div class="sidebar-label text-[11px] font-semibold text-google-gray dark:text-gray-400 uppercase tracking-wider px-4 py-1.5 flex items-center justify-between">
+                        <span>Преподавание</span>
+                        <i class="fa-solid fa-chalkboard-user text-xs"></i>
+                    </div>
+                    <div id="sidebar-teaching-courses" class="space-y-0.5 mt-1"></div>
+                </div>
+
+                <!-- Enrolled section -->
+                <div id="sidebar-enrolled-section">
+                    <div class="sidebar-label text-[11px] font-semibold text-google-gray dark:text-gray-400 uppercase tracking-wider px-4 py-1.5 flex items-center justify-between">
+                        <span>Обучение</span>
+                        <i class="fa-solid fa-user-graduate text-xs"></i>
+                    </div>
+                    <div id="sidebar-enrolled-courses" class="space-y-0.5 mt-1"></div>
+                </div>
+            </div>
+
+            <!-- Footer Sidebar Utilities -->
+            <div class="p-3 border-t border-google-border dark:border-google-darkBorder space-y-1">
+                <button id="btn-quick-create-course" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-r-full text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                    <i class="fa-solid fa-circle-plus text-google-blue text-base w-5 text-center"></i>
+                    <span class="sidebar-label truncate">Новый курс</span>
+                </button>
+                <button id="btn-sidebar-settings" onclick="window.navigateTo('settings')" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-r-full text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition" title="Настройки">
+                    <i class="fa-solid fa-gear text-google-gray dark:text-gray-400 text-base w-5 text-center"></i>
+                    <span class="sidebar-label truncate">Настройки</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN VIEWPORT CONTAINER -->
+        <main id="main-viewport" class="flex-1 overflow-y-auto custom-scrollbar bg-google-bg dark:bg-google-darkBg relative transition-colors">
+            
+            <!-- VIEW 1: COURSES DASHBOARD -->
+            <section id="view-dashboard" class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+                <!-- Welcome Banner -->
+                <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white shadow-xl">
+                    <div class="absolute -right-10 -bottom-10 opacity-15 pointer-events-none">
+                        <i class="fa-solid fa-graduation-cap text-9xl"></i>
+                    </div>
+                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="space-y-2 max-w-xl">
+                            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium">
+                                <i class="fa-solid fa-wifi text-emerald-300"></i>
+                                <span>Локальная сеть • Общая база данных</span>
+                            </div>
+                            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Учебное пространство</h1>
+                            <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
+                                Создавайте курсы, подключайте друзей по коду, делитесь учебными материалами и оценивайте работы онлайн.
+                            </p>
+                        </div>
+                        <div id="dash-quick-actions-box" class="flex flex-wrap items-center gap-3">
+                            <button id="btn-dash-join" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 text-xs font-medium flex items-center space-x-2 transition shadow-sm">
+                                <i class="fa-solid fa-key"></i>
+                                <span>Ввести код курса</span>
+                            </button>
+                            <button id="btn-dash-create" class="px-5 py-2.5 rounded-2xl bg-white text-google-blue hover:bg-blue-50 text-xs font-semibold flex items-center space-x-2 shadow-lg transition">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Создать курс</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guest Mode Welcome Banner (Item 3) -->
+                <div id="dash-guest-banner" class="hidden p-6 rounded-3xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border border-blue-200 dark:border-blue-900 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="w-12 h-12 rounded-2xl bg-google-blue text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                            <i class="fa-solid fa-user-clock"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100">Вы просматриваете Google Класс в режиме гостя</h3>
+                            <p class="text-xs text-google-gray dark:text-gray-300 mt-0.5">В гостевом режиме отключены создание курсов, список задач и чаты. Войдите через Google, чтобы получить полный доступ.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.navigateTo('google-auth')" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-semibold rounded-2xl shadow transition shrink-0 flex items-center space-x-2">
+                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1H12v2.85h5.36c-.23 1.25-.94 2.31-2 3.02l3.24 2.51c1.89-1.74 2.75-4.3 2.75-7.38 0-.34-.03-.68-.1-1z"/><path fill="currentColor" d="M12 22c2.7 0 4.97-.89 6.63-2.42l-3.24-2.51c-.9.6-2.05.96-3.39.96-2.6 0-4.81-1.76-5.6-4.12l-3.34 2.58C4.72 19.8 8.1 22 12 22z"/><path fill="currentColor" d="M6.4 13.91c-.2-.6-.31-1.24-.31-1.91s.11-1.31.31-1.91L3.06 7.51C2.39 8.85 2 10.38 2 12s.39 3.15 1.06 4.49l3.34-2.58z"/><path fill="currentColor" d="M12 5.97c1.47 0 2.79.51 3.83 1.5l2.87-2.87C17 2.99 14.7 2 12 2 8.1 2 4.72 4.2 3.06 7.51l3.34 2.58C7.19 7.73 9.4 5.97 12 5.97z"/></svg>
+                        <span>Войти через Google</span>
+                    </button>
+                </div>
+
+                <!-- Courses Header -->
+                <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-4">
+                    <div class="flex items-center space-x-3">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Мои курсы</h2>
+                        <span id="dashboard-courses-badge" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-blue-100 dark:bg-blue-900/60 text-google-blue dark:text-blue-300">0</span>
+                    </div>
+                    <button onclick="syncWithServer(true)" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-google-gray dark:text-gray-400 transition" title="Обновить список курсов">
+                        <i class="fa-solid fa-arrows-rotate text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Course Cards Grid with Background Images -->
+                <div id="courses-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </section>
+
+            <!-- VIEW 2: SINGLE COURSE DETAIL WORKSPACE -->
+            <section id="view-course-detail" class="hidden min-h-full flex flex-col">
+                
+                <!-- TAB 1: STREAM (FEED) -->
+                <div id="tab-course-stream" class="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-6">
+                    <!-- Course Hero Banner with Background Image -->
+                    <div id="course-hero-banner" class="rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden transition-all duration-300 min-h-[220px] flex flex-col justify-between">
+                        <!-- Dark gradient overlay for text readability -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/30 z-0"></div>
+
+                        <div class="relative z-10 max-w-2xl space-y-2">
+                            <span id="hero-banner-subject-badge" class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md"></span>
+                            <h1 id="hero-banner-title" class="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-white drop-shadow"></h1>
+                            <p id="hero-banner-subtitle" class="text-sm md:text-base opacity-90 font-medium drop-shadow"></p>
+                            <p id="hero-banner-author" class="text-xs opacity-80 pt-1 flex items-center space-x-2">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                                <span id="hero-banner-author-text"></span>
+                            </p>
+                        </div>
+
+                        <div class="relative z-10 mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/20 pt-4">
+                            <!-- Course Code Block -->
+                            <div class="bg-black/40 backdrop-blur-md px-4 py-2 rounded-2xl text-xs flex items-center space-x-3 border border-white/20 shadow-md">
+                                <span class="text-white/80">Код курса:</span>
+                                <span id="hero-banner-code" class="font-mono text-base font-bold tracking-widest text-amber-300"></span>
+                                <button id="btn-copy-course-code" title="Скопировать код курса" class="p-1 hover:text-blue-300 active:scale-95 transition flex items-center space-x-1 text-white">
+                                    <span id="copy-icon" class="material-symbols-outlined text-base">content_copy</span>
+                                    <span id="copy-text" class="text-[11px] font-medium hidden sm:inline">Копировать</span>
+                                </button>
+                            </div>
+
+                            <!-- Course settings button (for teacher / co-teacher) -->
+                            <button id="btn-open-course-settings" class="px-4 py-2 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-xs font-semibold text-white border border-white/30 flex items-center space-x-2 shadow-sm transition">
+                                <i class="fa-solid fa-gear"></i>
+                                <span>Настройки курса</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <!-- Left Panel: Deadlines & Quick Info -->
+                        <div class="md:col-span-1 space-y-4">
+                            <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-5 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-medium text-xs text-gray-900 dark:text-gray-100 uppercase tracking-wider">Сроки сдачи</h3>
+                                    <i class="fa-solid fa-clock text-google-gray"></i>
+                                </div>
+                                <div id="stream-deadlines-container" class="space-y-2 text-xs"></div>
+                                <button onclick="window.navigateTo('todo')" class="w-full text-right text-xs text-google-blue dark:text-google-blueDarkTheme font-medium hover:underline pt-1 block">
+                                    Все дедлайны →
+                                </button>
+                            </div>
+
+                            <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-5 shadow-sm space-y-2 text-xs text-google-gray dark:text-gray-400">
+                                <p class="font-semibold text-gray-800 dark:text-gray-200">Информация о курсе</p>
+                                <p id="course-meta-subject" class="flex items-center space-x-2"></p>
+                                <p id="course-meta-teacher" class="flex items-center space-x-2"></p>
+                                <p id="course-meta-students" class="flex items-center space-x-2"></p>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Posts Stream Feed -->
+                        <div class="md:col-span-3 space-y-4">
+                            <!-- New Announcement Box -->
+                            <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-4 sm:p-5 shadow-sm transition">
+                                <div id="announcement-collapsed" class="flex items-center space-x-3 cursor-pointer p-1">
+                                    <div id="announcement-user-avatar" class="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">ИС</div>
+                                    <div class="text-sm text-google-gray dark:text-gray-400 flex-1 truncate">Опубликуйте запись для своего курса...</div>
+                                    <span class="material-symbols-outlined text-google-gray">edit_note</span>
+                                </div>
+
+                                <div id="announcement-expanded" class="hidden pt-2 space-y-3">
+                                    <textarea id="input-announcement-body" rows="3" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-2xl p-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-google-blue transition" placeholder="Поделитесь важной новостью, файлом или ссылкой..."></textarea>
+                                    
+                                    <!-- Attachment Preview Chip Container -->
+                                    <div id="announcement-attachments-preview" class="flex flex-wrap gap-2 empty:hidden"></div>
+
+                                    <div class="flex flex-wrap items-center justify-between gap-2 border-t border-google-border dark:border-google-darkBorder pt-3">
+                                        <div class="flex items-center space-x-1">
+                                            <button type="button" id="btn-attach-link" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300" title="Добавить веб-ссылку">
+                                                <i class="fa-solid fa-link text-sm"></i>
+                                            </button>
+                                            <button type="button" id="btn-attach-file" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300" title="Прикрепить файл">
+                                                <i class="fa-solid fa-paperclip text-sm"></i>
+                                            </button>
+                                            <input type="file" id="input-announcement-file" class="hidden">
+                                            <button type="button" id="btn-attach-video" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300" title="YouTube видео">
+                                                <i class="fa-brands fa-youtube text-sm text-red-500"></i>
+                                            </button>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button id="btn-announcement-cancel" class="px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                                            <button id="btn-announcement-publish" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow-sm transition flex items-center space-x-1.5">
+                                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                                                <span>Опубликовать</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stream Feed List -->
+                            <div id="stream-feed-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CLASSWORK -->
+                <div id="tab-course-classwork" class="hidden p-4 sm:p-6 max-w-4xl mx-auto w-full space-y-6">
+                    <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Учебные задания</h2>
+                            <p class="text-xs text-google-gray dark:text-gray-400 mt-0.5">Практические работы, лабораторные и тесты</p>
+                        </div>
+                        <button id="btn-trigger-create-assignment" class="bg-google-blue hover:bg-google-blueDark text-white px-5 py-2.5 rounded-full font-medium text-xs shadow-md flex items-center space-x-2 transition">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span id="ca-publish-btn-text">Создать задание</span>
+                        </button>
+                    </div>
+
+                    <div id="classwork-cards-list" class="space-y-3"></div>
+                </div>
+
+                <!-- TAB 3: PEOPLE -->
+                <div id="tab-course-people" class="hidden p-4 sm:p-6 max-w-4xl mx-auto w-full space-y-8">
+                    <!-- Teachers list -->
+                    <div>
+                        <div class="flex items-center justify-between border-b-2 border-google-blue pb-3 mb-4">
+                            <div class="flex items-center space-x-3">
+                                <h2 class="text-xl font-medium text-google-blue dark:text-google-blueDarkTheme flex items-center space-x-2">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                    <span>Преподаватели и соуправляющие</span>
+                                </h2>
+                                <span id="people-teachers-count" class="text-xs font-medium text-google-gray">1 преподаватель</span>
+                            </div>
+                            <button id="btn-open-add-teacher" class="px-3.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 text-google-blue dark:text-google-blueDarkTheme hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 rounded-xl text-xs font-semibold flex items-center space-x-2 transition shadow-sm" title="Дать права соуправляющего курсом">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Добавить соуправляющего</span>
+                            </button>
+                        </div>
+                        <div id="people-teachers-list" class="divide-y divide-google-border dark:divide-google-darkBorder"></div>
+                    </div>
+
+                    <!-- Students list -->
+                    <div>
+                        <div class="flex items-center justify-between border-b-2 border-google-blue pb-3 mb-4">
+                            <h2 class="text-xl font-medium text-google-blue dark:text-google-blueDarkTheme flex items-center space-x-2">
+                                <i class="fa-solid fa-user-graduate"></i>
+                                <span>Однокурсники (Студенты)</span>
+                            </h2>
+                            <span id="people-students-count" class="text-xs font-medium text-google-gray">0 студентов</span>
+                        </div>
+                        <div id="people-students-list" class="divide-y divide-google-border dark:divide-google-darkBorder"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: GRADES GRADEBOOK (Teacher only) -->
+                <div id="tab-course-grades" class="hidden p-4 sm:p-6 max-w-6xl mx-auto w-full space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                                <i class="fa-solid fa-square-poll-vertical text-google-blue"></i>
+                                <span>Электронный журнал оценок</span>
+                            </h2>
+                            <p class="text-xs text-google-gray dark:text-gray-400 mt-0.5">Ввод и сохранение баллов в базу данных в реальном времени</p>
+                        </div>
+                        <div id="grades-stats-badge" class="px-3 py-1 bg-green-100 dark:bg-green-950 text-google-green font-medium text-xs rounded-full"></div>
+                    </div>
+
+                    <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl shadow-sm overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead>
+                                <tr class="bg-gray-50 dark:bg-gray-800/70 border-b border-google-border dark:border-google-darkBorder text-xs text-google-gray dark:text-gray-300 font-semibold uppercase">
+                                    <th class="p-4 w-72 sticky left-0 bg-gray-50 dark:bg-gray-800 z-10">Студент</th>
+                                    <th id="grades-assignments-headers" class="contents"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="grades-table-body" class="divide-y divide-google-border dark:divide-google-darkBorder text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- VIEW 3: FULL-PAGE ASSIGNMENT WORKSPACE (GOOGLE CLASSROOM STYLE) -->
+            <section id="view-assignment-detail" class="hidden p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6">
+                <!-- Top Back Nav -->
+                <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-4">
+                    <button id="btn-back-to-course-classwork" class="inline-flex items-center space-x-2 text-xs font-semibold text-google-blue dark:text-google-blueDarkTheme hover:underline">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span id="assign-full-back-label">Назад к заданиям курса</span>
+                    </button>
+                    <span id="assign-full-course-badge" class="text-xs font-semibold text-google-gray bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full"></span>
+                </div>
+
+                <!-- Two-Column Classroom Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <!-- Left Column (Wide: Assignment details, instructions, materials, class comments) -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+                            <div class="flex items-start justify-between space-x-4">
+                                <div class="flex items-start space-x-4 flex-1">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/50 text-google-blue dark:text-google-blueDarkTheme flex items-center justify-center shrink-0 shadow-sm">
+                                        <i class="fa-solid fa-clipboard-check text-2xl"></i>
+                                    </div>
+                                    <div class="flex-1 space-y-1">
+                                        <h1 id="assign-full-title" class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 leading-snug"></h1>
+                                        <div class="flex flex-wrap items-center gap-2 text-xs text-google-gray pt-1">
+                                            <span id="assign-full-author" class="font-medium text-gray-800 dark:text-gray-200"></span>
+                                            <span>•</span>
+                                            <span id="assign-full-deadline" class="font-medium text-red-600 dark:text-red-400"></span>
+                                            <span>•</span>
+                                            <span id="assign-full-points" class="font-semibold text-google-blue dark:text-google-blueDarkTheme"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button id="btn-edit-current-assignment" class="hidden px-3.5 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-google-gray dark:text-gray-300 rounded-2xl text-xs font-semibold transition flex items-center space-x-2 shrink-0 shadow-sm" title="Редактировать задание">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                    <span>Редактировать</span>
+                                </button>
+                            </div>
+
+                            <hr class="border-google-border dark:border-google-darkBorder" />
+
+                            <!-- Instructions -->
+                            <div class="space-y-2">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-google-gray">Инструкция к выполнению</h3>
+                                <div id="assign-full-description" class="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line leading-relaxed bg-gray-50 dark:bg-gray-800/60 p-5 rounded-2xl border border-google-border dark:border-google-darkBorder"></div>
+                            </div>
+
+                            <!-- Assignment Attachments / Materials by Teacher -->
+                            <div id="assign-full-materials-box" class="space-y-2 hidden">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-google-gray">Материалы к заданию</h3>
+                                <div id="assign-full-materials-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Class Comments (Public under Assignment) -->
+                        <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-6 shadow-sm space-y-4">
+                            <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                                <i class="fa-solid fa-comments text-google-blue"></i>
+                                <span>Комментарии курса</span>
+                            </h3>
+
+                            <div id="assign-full-comments-list" class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar"></div>
+
+                            <div class="flex items-center space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                                <input type="text" id="input-assign-public-comment" placeholder="Добавить комментарий для курса..." class="flex-1 border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-full px-4 py-2.5 text-xs focus:ring-1 focus:ring-google-blue focus:outline-none">
+                                <button id="btn-send-assign-public-comment" class="p-2.5 rounded-full text-google-blue hover:bg-blue-50 dark:hover:bg-gray-700 transition" title="Отправить комментарий">
+                                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column (Card: Student submission OR Teacher grading summary) -->
+                    <div class="flex flex-col gap-6">
+                        <!-- STUDENT WORK CARD -->
+                        <div id="assign-student-side-card" class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-6 shadow-md space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Моя работа</h3>
+                                <div id="assign-student-status-badge"></div>
+                            </div>
+
+                            <!-- If NOT submitted yet (Original Google Classroom Style) -->
+                            <div id="assign-student-form" class="space-y-3">
+                                <!-- + Add or create attachment dropdown -->
+                                <div class="relative">
+                                    <button type="button" id="btn-student-add-attachment" class="w-full py-2.5 px-4 rounded-full border border-google-border dark:border-google-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold text-google-blue dark:text-google-blueDarkTheme flex items-center justify-center space-x-2 transition shadow-sm">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Добавить или создать</span>
+                                    </button>
+                                    <div id="dropdown-student-add-attachment" class="hidden absolute left-0 right-0 mt-2 bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-2xl shadow-2xl p-2 z-20 space-y-1 animate-in fade-in duration-150">
+                                        <button type="button" id="btn-student-pick-file" class="w-full p-2.5 text-left text-xs font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-gray-800 dark:text-gray-200 transition">
+                                            <i class="fa-solid fa-paperclip text-google-blue text-sm w-4"></i>
+                                            <span>Файл с компьютера</span>
+                                        </button>
+                                        <button type="button" id="btn-student-pick-link" class="w-full p-2.5 text-left text-xs font-medium rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 text-gray-800 dark:text-gray-200 transition">
+                                            <i class="fa-solid fa-link text-google-green text-sm w-4"></i>
+                                            <span>Ссылка (URL)</span>
+                                        </button>
+                                    </div>
+                                    <input type="file" id="input-student-file-upload" class="hidden" multiple>
+                                </div>
+
+                                <!-- Attached files / links list -->
+                                <div id="student-pending-attachments" class="space-y-2"></div>
+
+                                <button id="assign-btn-submit-work" class="w-full py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white text-xs font-bold rounded-full shadow-md transition flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-check text-xs"></i>
+                                    <span id="assign-btn-submit-label">Сдать работу</span>
+                                </button>
+                            </div>
+
+                            <!-- If ALREADY submitted -->
+                            <div id="assign-student-submitted-box" class="hidden space-y-3">
+                                <div class="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-2xl p-4 text-xs space-y-2">
+                                    <p class="font-bold text-google-green flex items-center space-x-1.5">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Работа сдана на проверку</span>
+                                    </p>
+                                    <div id="assign-student-submitted-text" class="text-gray-800 dark:text-gray-200 bg-white dark:bg-google-darkSurface p-3 rounded-xl border border-green-100 dark:border-green-900"></div>
+                                    <div id="assign-student-submitted-grade-box" class="text-xs font-bold text-google-green"></div>
+                                </div>
+
+                                <button id="assign-btn-unsubmit-work" class="w-full py-2.5 border border-google-border dark:border-google-darkBorder text-xs font-medium text-google-gray hover:text-red-500 rounded-xl transition">
+                                    Отменить отправку для редактирования
+                                </button>
+                            </div>
+
+                            <!-- Private Comments with Teacher -->
+                            <div class="border-t border-google-border dark:border-google-darkBorder pt-4 space-y-3">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-google-gray flex items-center space-x-1.5">
+                                    <i class="fa-solid fa-lock text-[10px]"></i>
+                                    <span>Личные комментарии</span>
+                                </h4>
+                                <div id="assign-private-comments-list" class="space-y-1.5 max-h-40 overflow-y-auto custom-scrollbar"></div>
+                                <div class="flex items-center space-x-2 pt-1">
+                                    <input type="text" id="input-assign-private-comment" placeholder="Сообщение преподавателю..." class="flex-1 border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3 py-1.5 text-xs focus:ring-1 focus:ring-google-blue focus:outline-none">
+                                    <button id="btn-send-assign-private-comment" class="p-2 rounded-xl text-google-blue hover:bg-blue-50 dark:hover:bg-gray-700 transition" title="Отправить личное сообщение">
+                                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TEACHER SUMMARY & GRADING CARD -->
+                        <div id="assign-teacher-side-card" class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-6 shadow-md space-y-4">
+                            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Работы студентов</h3>
+                            
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                                <div class="bg-blue-50 dark:bg-blue-950/40 p-2.5 rounded-2xl border border-blue-100 dark:border-blue-900">
+                                    <p id="teacher-stat-submitted" class="text-lg font-bold text-google-blue">0</p>
+                                    <p class="text-[10px] text-google-gray">Сдано</p>
+                                </div>
+                                <div class="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-2xl border border-amber-100 dark:border-amber-900">
+                                    <p id="teacher-stat-pending" class="text-lg font-bold text-amber-600">0</p>
+                                    <p class="text-[10px] text-google-gray">Ожидание</p>
+                                </div>
+                                <div class="bg-green-50 dark:bg-green-950/40 p-2.5 rounded-2xl border border-green-100 dark:border-green-900">
+                                    <p id="teacher-stat-graded" class="text-lg font-bold text-google-green">0</p>
+                                    <p class="text-[10px] text-google-gray">Оценено</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                                <h4 class="text-xs font-semibold text-google-gray uppercase tracking-wider">Список студентов</h4>
+                                <div id="assign-teacher-students-list" class="space-y-2.5 max-h-96 overflow-y-auto custom-scrollbar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: TODO LIST (EXACT GOOGLE CLASSROOM REPLICA MATCHING SCREENSHOT) -->
+            <section id="view-todo" class="hidden p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+                <!-- Top Tabs Bar (Google Classroom Style) -->
+                <div class="border-b border-google-border dark:border-google-darkBorder flex items-center space-x-8 text-sm font-medium">
+                    <button id="todo-tab-btn-assigned" class="todo-nav-tab pb-3 text-google-blue border-b-2 border-google-blue transition flex items-center space-x-2" onclick="window.switchTodoTab('assigned')">
+                        <span>Назначено</span>
+                        <span id="todo-badge-assigned" class="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-google-blue font-bold">0</span>
+                    </button>
+                    <button id="todo-tab-btn-missing" class="todo-nav-tab pb-3 text-google-gray hover:text-google-text transition flex items-center space-x-2" onclick="window.switchTodoTab('missing')">
+                        <span>Пропущен срок сдачи</span>
+                        <span id="todo-badge-missing" class="text-[11px] px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-950 text-red-600 font-bold">0</span>
+                    </button>
+                    <button id="todo-tab-btn-done" class="todo-nav-tab pb-3 text-google-gray hover:text-google-text transition flex items-center space-x-2" onclick="window.switchTodoTab('done')">
+                        <span>Выполнено</span>
+                        <span id="todo-badge-done" class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-950 text-google-green font-bold">0</span>
+                    </button>
+                </div>
+
+                <!-- Course Filter Dropdown (Google Classroom Styled) -->
+                <div class="flex items-center justify-between">
+                    <div class="relative w-72">
+                        <select id="todo-course-filter" onchange="renderTodoView()" class="w-full appearance-none bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-2xl px-4 py-2.5 text-xs font-semibold text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-google-blue focus:outline-none pr-10 shadow-sm cursor-pointer">
+                            <option value="all">Все курсы</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-1/2 -translate-y-1/2 text-google-gray pointer-events-none text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Accordion Groups Container -->
+                <div id="todo-groups-container" class="space-y-4"></div>
+            </section>
+
+            <!-- VIEW: FULL-PAGE CREATE ASSIGNMENT (NOT IN A SQUARE MODAL!) -->
+            <section id="view-create-assignment" class="hidden min-h-screen bg-white dark:bg-google-darkSurface flex flex-col">
+                <!-- Top Toolbar Bar -->
+                <div class="h-16 px-6 border-b border-google-border dark:border-google-darkBorder flex items-center justify-between shrink-0 bg-white/95 dark:bg-google-darkSurface/95 backdrop-blur z-10 sticky top-0">
+                    <div class="flex items-center space-x-4">
+                        <button id="btn-close-create-assignment" class="w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-google-gray flex items-center justify-center transition" title="Отмена и выход">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-9 h-9 rounded-2xl bg-blue-100 dark:bg-blue-950 text-google-blue flex items-center justify-center shadow-sm">
+                                <i class="fa-solid fa-clipboard-list text-base"></i>
+                            </div>
+                            <div>
+                                <h2 id="ca-heading-text" class="font-bold text-sm text-gray-900 dark:text-gray-100">Создание учебного задания</h2>
+                                <p id="ca-course-title-sub" class="text-[11px] text-google-gray">Курс</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <button id="btn-publish-assignment-action" class="px-6 py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white font-semibold text-xs rounded-2xl shadow-md flex items-center space-x-2 transition">
+                            <i class="fa-solid fa-check"></i>
+                            <span id="ca-publish-btn-text">Создать задание</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Grid Body -->
+                <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column: Title, Instructions, Attachments -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Title Field with Icon -->
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-google-gray dark:text-gray-300">Название задания <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <i class="fa-solid fa-file-pen absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-sm"></i>
+                                <input id="ca-input-title" type="text" placeholder="Например: Практическая работа №2: Работа с API" class="w-full pl-10 pr-4 py-3 rounded-2xl border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 text-sm font-semibold focus:ring-2 focus:ring-google-blue focus:outline-none transition">
+                            </div>
+                        </div>
+
+                        <!-- Instructions Field with Icon -->
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-google-gray dark:text-gray-300">Инструкции и требования к выполнению</label>
+                            <div class="relative">
+                                <textarea id="ca-input-desc" rows="6" placeholder="Опишите требования к заданию, шаги решения или критерии сдачи..." class="w-full p-4 rounded-2xl border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none transition custom-scrollbar"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Teacher Attachments Section -->
+                        <div class="border border-google-border dark:border-google-darkBorder rounded-3xl p-5 space-y-4 bg-gray-50/50 dark:bg-gray-800/30">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-xs text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                                    <i class="fa-solid fa-paperclip text-google-blue"></i>
+                                    <span>Материалы преподавателя к заданию</span>
+                                </h3>
+                                <span class="text-[11px] text-google-gray">Файлы, презентации, видео, ссылки</span>
+                            </div>
+
+                            <!-- Attach Action Buttons -->
+                            <div class="flex flex-wrap gap-2.5">
+                                <label class="px-3.5 py-2 rounded-xl bg-white dark:bg-gray-800 border border-google-border dark:border-google-darkBorder hover:border-google-blue text-xs font-medium text-gray-700 dark:text-gray-200 cursor-pointer shadow-sm hover:shadow flex items-center space-x-2 transition">
+                                    <i class="fa-solid fa-cloud-arrow-up text-google-blue"></i>
+                                    <span>Загрузить файл с ПК</span>
+                                    <input type="file" id="ca-input-file" class="hidden">
+                                </label>
+                                <button type="button" id="ca-btn-add-link" class="px-3.5 py-2 rounded-xl bg-white dark:bg-gray-800 border border-google-border dark:border-google-darkBorder hover:border-google-blue text-xs font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:shadow flex items-center space-x-2 transition">
+                                    <i class="fa-solid fa-link text-emerald-500"></i>
+                                    <span>Ссылка на веб-ресурс</span>
+                                </button>
+                                <button type="button" id="ca-btn-add-youtube" class="px-3.5 py-2 rounded-xl bg-white dark:bg-gray-800 border border-google-border dark:border-google-darkBorder hover:border-google-blue text-xs font-medium text-gray-700 dark:text-gray-200 shadow-sm hover:shadow flex items-center space-x-2 transition">
+                                    <i class="fa-brands fa-youtube text-red-500"></i>
+                                    <span>Видео YouTube</span>
+                                </button>
+                            </div>
+
+                            <!-- Attached Items Preview Cards -->
+                            <div id="ca-pending-attachments-list" class="space-y-2 pt-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Settings Card -->
+                    <div class="space-y-5">
+                        <div class="bg-gray-50 dark:bg-gray-800/60 border border-google-border dark:border-google-darkBorder rounded-3xl p-6 space-y-4">
+                            <h4 class="font-bold text-xs uppercase tracking-wider text-google-gray border-b border-google-border dark:border-google-darkBorder pb-2">
+                                Параметры задания
+                            </h4>
+
+                            
+
+                            <!-- Points Field with Icon -->
+                            <div>
+                                <label class="block font-medium text-google-gray dark:text-gray-300 text-xs mb-1">Максимальный балл</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-award absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs"></i>
+                                    <input id="ca-input-points" type="number" value="100" min="1" max="1000" class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-google-border dark:border-google-darkBorder bg-white dark:bg-gray-800 text-xs font-semibold focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Deadline Field with Icon -->
+                            <div>
+                                <label class="block font-medium text-google-gray dark:text-gray-300 text-xs mb-1">Срок сдачи (Дедлайн)</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-calendar-days absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs"></i>
+                                    <input id="ca-input-deadline" type="date" class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-google-border dark:border-google-darkBorder bg-white dark:bg-gray-800 text-xs font-semibold focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Topic Field with Icon -->
+                            <div>
+                                <label class="block font-medium text-google-gray dark:text-gray-300 text-xs mb-1">Тема (Раздел)</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-tags absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs"></i>
+                                    <input id="ca-input-topic" type="text" placeholder="Например: Модуль 1" class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-google-border dark:border-google-darkBorder bg-white dark:bg-gray-800 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 5: SCHEDULE / CALENDAR -->
+            <section id="view-calendar" class="hidden p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
+                <div class="border-b border-google-border dark:border-google-darkBorder pb-4 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Календарь дедлайнов</h1>
+                        <p class="text-xs text-google-gray dark:text-gray-400 mt-1">График сдачи лабораторных и практических работ</p>
+                    </div>
+                    <div class="text-xs font-mono bg-white dark:bg-google-darkSurface px-3 py-1.5 rounded-xl border border-google-border dark:border-google-darkBorder shadow-sm">
+                        2026-2027 учебный год
+                    </div>
+                </div>
+
+                <div id="calendar-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </section>
+
+            <!-- VIEW 6: FULL-PAGE PROFILE SETTINGS -->
+            <section id="view-profile-settings" class="hidden p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full space-y-6">
+                <!-- Top Nav / Back Button -->
+                <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-4">
+                    <button id="btn-back-from-profile" class="inline-flex items-center space-x-2 text-xs font-semibold text-google-blue dark:text-google-blueDarkTheme hover:underline">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Назад на главную</span>
+                    </button>
+                    <span class="text-xs font-semibold text-google-gray bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">Управление профилем</span>
+                </div>
+
+                <div class="space-y-1">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Настройки профиля</h1>
+                    <p class="text-xs sm:text-sm text-google-gray dark:text-gray-400">Настройте свой аватар, баннер профиля и персональные данные для Google Класс</p>
+                </div>
+
+                <!-- LIVE PROFILE HERO CARD PREVIEW -->
+                <div class="relative rounded-3xl overflow-hidden shadow-xl border border-google-border dark:border-google-darkBorder bg-white dark:bg-google-darkSurface">
+                    <!-- Banner Cover Image -->
+                    <div id="profile-preview-banner" class="h-44 sm:h-56 w-full bg-cover bg-center relative transition-all duration-300 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800">
+                        <div class="absolute inset-0 bg-black/25 backdrop-blur-[0.5px]"></div>
+                        <div class="absolute top-4 right-4 flex items-center space-x-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium text-white/90 bg-black/40 backdrop-blur-md border border-white/20">
+                                <i class="fa-solid fa-eye mr-1"></i> Предпросмотр профиля
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Profile Info with Overlapping Avatar -->
+                    <div class="px-6 pb-6 pt-0 relative flex flex-col sm:flex-row items-center sm:items-end justify-between -mt-16 sm:-mt-20 gap-4">
+                        <div class="flex flex-col sm:flex-row items-center sm:items-end space-y-3 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
+                            <!-- Avatar Preview -->
+                            <div class="relative">
+                                <div id="profile-preview-avatar-box" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full ring-4 ring-white dark:ring-google-darkSurface shadow-2xl overflow-hidden flex items-center justify-center text-white text-3xl font-bold bg-gradient-to-tr from-blue-600 to-indigo-600 select-none">
+                                    <span id="profile-preview-avatar-text">ИС</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 mb-1">
+                                <div class="flex items-center justify-center sm:justify-start space-x-2">
+                                    <h2 id="profile-preview-name" class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Пользователь</h2>
+                                    <span id="profile-preview-role-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300">Преподаватель</span>
+                                </div>
+                                <p id="profile-preview-email" class="text-xs sm:text-sm text-google-gray dark:text-gray-400">teacher@school.edu</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <button id="btn-save-full-profile" class="px-5 py-2.5 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white font-semibold text-xs rounded-2xl shadow-lg transition flex items-center space-x-2">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Сохранить профиль</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS CONTROLS GRID -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- CARD 1: AVATAR CUSTOMIZATION (ITEM 2) -->
+                    <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-6 shadow-sm space-y-5">
+                        <div class="flex items-center space-x-3 border-b border-google-border dark:border-google-darkBorder pb-4">
+                            <div class="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-google-blue flex items-center justify-center">
+                                <i class="fa-solid fa-circle-user text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Настройка аватарки</h3>
+                                <p class="text-xs text-google-gray">Цвет, эмодзи, ссылка на фото или файл</p>
+                            </div>
+                        </div>
+
+                        <!-- 1. Color Gradient Picker -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-google-gray">1. Цветовой градиент:</label>
+                            <div id="full-profile-colors-grid" class="flex flex-wrap gap-2.5 pt-1">
+                                <!-- Will be rendered via JS -->
+                            </div>
+                        </div>
+
+                        <!-- 2. Emoji & Initials -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-google-gray">2. Символ, инициалы или эмодзи:</label>
+                            <div class="flex items-center space-x-3">
+                                <input type="text" id="full-profile-avatar-char" maxlength="4" placeholder="ИС" class="w-24 text-center text-lg font-bold border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl py-2 focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                <span class="text-xs text-google-gray">Или кликните быстрый стикер:</span>
+                            </div>
+                            <div id="full-profile-emoji-grid" class="flex flex-wrap gap-2 pt-1">
+                                <!-- Will be populated via JS -->
+                            </div>
+                        </div>
+
+                        <!-- 3. Photo URL or File Upload -->
+                        <div class="space-y-3 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-google-gray">3. Личное фото / Изображение:</label>
+                            <div>
+                                <label class="block text-xs text-google-gray mb-1">Ссылка на фото (URL):</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" id="full-profile-photo-url" placeholder="https://..." class="flex-1 border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                    <button id="btn-apply-avatar-url" type="button" class="px-3.5 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-xs font-medium rounded-xl transition">
+                                        Применить
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-google-gray mb-1">Или загрузить файл с компьютера:</label>
+                                <label class="flex flex-col items-center justify-center border-2 border-dashed border-google-border dark:border-google-darkBorder hover:border-google-blue dark:hover:border-google-blueDarkTheme rounded-2xl p-4 cursor-pointer transition bg-gray-50 dark:bg-gray-800/40 group">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-google-gray group-hover:text-google-blue transition mb-1"></i>
+                                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Нажмите для выбора фото (PNG, JPG, WEBP)</span>
+                                    <span class="text-[10px] text-google-gray">Конвертируется локально в аватар</span>
+                                    <input type="file" id="full-profile-avatar-file" accept="image/*" class="hidden">
+                                </label>
+                            </div>
+                            <button id="btn-reset-avatar-photo" type="button" class="text-xs text-red-500 hover:underline flex items-center space-x-1">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                <span>Сбросить фото (вернуть цветной значок)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: BANNER CUSTOMIZATION (ITEM 3) & PROFILE DATA -->
+                    <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl p-6 shadow-sm space-y-5">
+                        <div class="flex items-center space-x-3 border-b border-google-border dark:border-google-darkBorder pb-4">
+                            <div class="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                                <i class="fa-solid fa-panorama text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Баннер профиля и данные</h3>
+                                <p class="text-xs text-google-gray">Обложка профиля, имя и контакты</p>
+                            </div>
+                        </div>
+
+                        <!-- Preset Banner Themes -->
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-google-gray">1. Коллекция обоев Classroom:</label>
+                            <div id="full-profile-banner-presets" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                                <!-- Will be rendered via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Custom Banner URL & Upload -->
+                        <div class="space-y-3 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-google-gray">2. Свой баннер:</label>
+                            <div>
+                                <label class="block text-xs text-google-gray mb-1">Ссылка на баннер (URL):</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" id="full-profile-banner-url" placeholder="https://..." class="flex-1 border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                    <button id="btn-apply-banner-url" type="button" class="px-3.5 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-xs font-medium rounded-xl transition">
+                                        Применить
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-google-gray mb-1">Или загрузить баннер с компьютера:</label>
+                                <label class="flex flex-col items-center justify-center border-2 border-dashed border-google-border dark:border-google-darkBorder hover:border-google-blue dark:hover:border-google-blueDarkTheme rounded-2xl p-4 cursor-pointer transition bg-gray-50 dark:bg-gray-800/40 group">
+                                    <i class="fa-solid fa-image text-2xl text-google-gray group-hover:text-google-blue transition mb-1"></i>
+                                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Нажмите для выбора баннера</span>
+                                    <span class="text-[10px] text-google-gray">Рекомендуемый размер 1200 × 300 px</span>
+                                    <input type="file" id="full-profile-banner-file" accept="image/*" class="hidden">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- PERSONAL DATA IN PROFILE -->
+                        <div class="space-y-3 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-google-gray">3. Данные аккаунта:</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-google-gray mb-1">Отображаемое имя / ФИО <span class="text-red-500">*</span></label>
+                                    <input id="full-profile-input-name" type="text" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-google-gray mb-1">Роль в системе</label>
+                                    <select id="full-profile-select-role" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                                        <option value="student">Студент</option>
+                                        <option value="teacher">Преподаватель (Куратор)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-google-gray mb-1">Email адрес</label>
+                                <input id="full-profile-input-email" type="email" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Bottom Save button -->
+                        <div class="pt-2 flex justify-end">
+                            <button id="btn-save-full-profile-bottom" class="w-full py-3 bg-google-blue hover:bg-google-blueDark active:scale-95 text-white font-semibold text-xs rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Сохранить все изменения</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 7: TELEGRAM-STYLE FULL-PAGE MESSENGER (CHATS) -->
+            <section id="view-chats" class="hidden h-full flex flex-row overflow-hidden w-full bg-white dark:bg-google-darkSurface">
+                <!-- Left Column: Chats List & Dialogs (Telegram Left Sidebar) -->
+                <div class="w-80 sm:w-96 border-r border-google-border dark:border-google-darkBorder flex flex-col h-full bg-white dark:bg-google-darkSurface shrink-0">
+                    <!-- Top Bar: Search & New Chat Button -->
+                    <div class="p-3.5 border-b border-google-border dark:border-google-darkBorder flex items-center space-x-2 shrink-0">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-google-gray text-base pointer-events-none">search</span>
+                            <input id="input-chats-search" type="text" placeholder="Поиск в чатах..." class="w-full pl-9 pr-3 py-2 text-xs bg-gray-100 dark:bg-gray-800 rounded-full border border-transparent focus:border-sky-500 focus:bg-white dark:focus:bg-gray-700 focus:outline-none transition dark:text-gray-100">
+                        </div>
+                        <button id="btn-open-create-chat" title="Новый чат, группа или канал" class="w-9 h-9 rounded-full bg-sky-500 hover:bg-sky-600 active:scale-95 text-white flex items-center justify-center shadow transition shrink-0">
+                            <i class="fa-solid fa-pen-to-square text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Category Tabs (Telegram Folders) -->
+                    <div class="flex items-center space-x-1 px-3 py-2 border-b border-google-border dark:border-google-darkBorder text-xs shrink-0 overflow-x-auto custom-scrollbar">
+                        <button data-chat-filter="all" class="chat-tab-btn active px-3 py-1.5 rounded-full font-medium bg-sky-50 text-sky-600 dark:bg-sky-950 dark:text-sky-300 transition shrink-0">Все</button>
+                        <button data-chat-filter="direct" class="chat-tab-btn px-3 py-1.5 rounded-full font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-800 transition shrink-0">Личные</button>
+                        <button data-chat-filter="group" class="chat-tab-btn px-3 py-1.5 rounded-full font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-800 transition shrink-0">Группы</button>
+                        <button data-chat-filter="channel" class="chat-tab-btn px-3 py-1.5 rounded-full font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-800 transition shrink-0">Каналы</button>
+                    </div>
+
+                    <!-- Chat List Container -->
+                    <div id="chats-dialogs-list" class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-gray-100 dark:divide-gray-800/60"></div>
+                </div>
+
+                <!-- Right Column: Active Chat Feed (Telegram Chat Area) -->
+                <div id="chats-active-window" class="flex-1 flex flex-col h-full bg-[#efeae2] dark:bg-[#0f141c] relative overflow-hidden">
+                    <!-- Placeholder when no chat is open -->
+                    <div id="chats-empty-state" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                        <div class="w-20 h-20 rounded-full bg-sky-100 dark:bg-sky-950/60 text-sky-500 flex items-center justify-center text-3xl shadow-lg mb-3">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-800 dark:text-gray-200">Выберите чат для начала общения</h3>
+                        <p class="text-xs text-google-gray max-w-xs mt-1">Отправляйте сообщения, делитесь файлами или создайте группу или канал как в Telegram</p>
+                    </div>
+
+                    <!-- Chat Active Header -->
+                    <div id="chats-active-header" class="hidden h-16 border-b border-google-border dark:border-google-darkBorder bg-white/90 dark:bg-google-darkSurface/90 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-10">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <div id="active-chat-avatar" class="w-10 h-10 rounded-full text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm overflow-hidden bg-gradient-to-tr from-sky-500 to-blue-600">💬</div>
+                            <div class="min-w-0">
+                                <h4 id="active-chat-title" class="font-bold text-sm text-gray-900 dark:text-gray-100 truncate">Чат</h4>
+                                <p id="active-chat-subtitle" class="text-[11px] text-google-gray dark:text-gray-400 truncate">3 участника</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-1">
+                            
+                            <button id="btn-chat-info" onclick="openChatInfoModal()" title="Информация и участники" class="p-2 text-google-gray hover:text-sky-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                                <i class="fa-solid fa-circle-info text-sm"></i>
+                            </button>
+                            <button id="btn-chat-delete" title="Удалить чат" class="p-2 text-google-gray hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Messages Stream Area -->
+                    <div id="chats-messages-container" class="hidden flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col"></div>
+
+                    <!-- Bottom Input Bar (Telegram Web Style) -->
+                    <div id="chats-active-input-bar" class="hidden border-t border-google-border dark:border-google-darkBorder bg-white dark:bg-google-darkSurface p-3 shrink-0">
+                        <!-- Pending reply preview -->
+                        <div id="chat-reply-preview" class="hidden flex items-center justify-between bg-sky-50 dark:bg-sky-950/50 px-3.5 py-1.5 rounded-xl mb-2 text-xs border-l-4 border-sky-500">
+                            <div class="truncate">
+                                <span id="chat-reply-sender" class="font-bold text-sky-500">Ответ</span>
+                                <p id="chat-reply-text" class="text-[11px] text-google-gray truncate"></p>
+                            </div>
+                            <button type="button" onclick="cancelChatReply()" class="text-google-gray hover:text-red-500 ml-2">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <!-- Pending message attachments preview -->
+                        <div id="chat-pending-attachments" class="space-y-1.5 mb-2 hidden"></div>
+
+                        <div class="flex items-center space-x-2">
+                            <!-- Attach file button -->
+                            <label class="p-2 rounded-full text-google-gray hover:text-sky-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer shrink-0" title="Прикрепить файл или фото">
+                                <i class="fa-solid fa-paperclip text-base"></i>
+                                <input type="file" id="input-chat-file" class="hidden">
+                            </label>
+
+                            <!-- Emoji picker button & popup -->
+                            <div class="relative shrink-0">
+                                <button id="btn-chat-emoji" type="button" class="p-2 rounded-full text-google-gray hover:text-amber-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Вставить эмодзи">
+                                    <i class="fa-regular fa-face-smile text-base"></i>
+                                </button>
+                                <div id="chat-emoji-picker" class="hidden absolute bottom-12 left-0 bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder shadow-2xl rounded-2xl p-3 grid grid-cols-7 gap-2 z-50 text-xl w-64 select-none animate-in fade-in zoom-in-95 duration-150">
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('😂')">😂</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('👍')">👍</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('❤️')">❤️</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('🔥')">🔥</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('🎉')">🎉</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('👏')">👏</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('🚀')">🚀</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('😍')">😍</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('🤔')">🤔</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('💯')">💯</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('📚')">📚</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('✨')">✨</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('💡')">💡</span>
+                                    <span class="emoji-item cursor-pointer hover:scale-125 transition-transform text-center p-1" onclick="insertChatEmoji('💻')">💻</span>
+                                </div>
+                            </div>
+
+                            <!-- Message Text input (Enter to send) -->
+                            <div class="flex-1 relative">
+                                <textarea id="input-chat-message" rows="1" placeholder="Напишите сообщение... (Enter для отправки)" class="w-full resize-none border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-2xl px-4 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none max-h-32 custom-scrollbar"></textarea>
+                            </div>
+
+                            <!-- Send button -->
+                            <button id="btn-send-chat-message" class="w-10 h-10 rounded-full bg-sky-500 hover:bg-sky-600 active:scale-95 text-white flex items-center justify-center shadow transition shrink-0" title="Отправить (Enter)">
+                                <i class="fa-solid fa-paper-plane text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        
+            <!-- VIEW: GOOGLE ACCOUNT CHOOSER (REQUIREMENT 0) -->
+                        <!-- VIEW: GOOGLE ACCOUNT CHOOSER (OFFICIAL DARK THEME REPLICA) -->
+            <section id="view-google-auth" class="hidden min-h-[calc(100vh-4rem)] bg-[#131314] flex flex-col items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+                <div class="bg-[#1f1f1f] text-[#e8eaed] rounded-3xl w-full max-w-xl shadow-2xl border border-[#3c4043] p-8 sm:p-10 space-y-6">
+                    <!-- Google Logo & Title -->
+                    <div class="space-y-4">
+                        <svg class="w-10 h-10" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <h1 class="text-3xl font-normal text-white tracking-tight">Выберите аккаунт</h1>
+                        <p class="text-xs text-[#9aa0a6]">для перехода в Google Classroom</p>
+                    </div>
+
+                    <!-- Detected Google Accounts List -->
+                    <div id="google-accounts-chooser-list" class="divide-y divide-[#3c4043] border-t border-b border-[#3c4043] my-4">
+                        <!-- Populated dynamically by js/auth.js -->
+                    </div>
+
+                    <!-- Use Another Account Option -->
+                    <div class="space-y-4">
+                        <button type="button" onclick="toggleCustomGoogleInput()" class="w-full p-3 px-4 rounded-2xl hover:bg-[#2d2e31] flex items-center space-x-3.5 transition text-left text-[#e8eaed] group">
+                            <div class="w-9 h-9 rounded-full bg-[#2d2e31] text-[#9aa0a6] group-hover:text-white flex items-center justify-center shrink-0">
+                                <i class="fa-regular fa-circle-user text-xl"></i>
+                            </div>
+                            <span class="text-sm font-medium">Использовать другой аккаунт</span>
+                        </button>
+
+                        <div id="google-custom-input-box" class="hidden p-5 rounded-2xl bg-[#28292a] border border-[#3c4043] space-y-3">
+                            <p class="text-xs font-semibold text-white">Вход через аккаунт Google</p>
+                            <div>
+                                <label class="block text-[11px] text-[#9aa0a6] mb-1">Адрес электронной почты (@gmail.com) *</label>
+                                <input type="email" id="custom-google-email" placeholder="example@gmail.com" class="w-full bg-[#131314] border border-[#5f6368] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#8ab4f8] focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] text-[#9aa0a6] mb-1">Имя (необязательно)</label>
+                                    <input type="text" id="custom-google-name" placeholder="Даниил" class="w-full bg-[#131314] border border-[#5f6368] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#8ab4f8] focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-[#9aa0a6] mb-1">Роль в Классе</label>
+                                    <select id="custom-google-role" class="w-full bg-[#131314] border border-[#5f6368] rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-[#8ab4f8] focus:outline-none">
+                                        <option value="student">Студент</option>
+                                        <option value="teacher">Преподаватель</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" onclick="submitCustomGoogleAccount()" class="w-full py-2.5 bg-[#8ab4f8] hover:bg-[#a8c7fa] text-[#041e49] font-bold text-xs rounded-xl transition shadow">
+                                Продолжить вход
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Actions Footer -->
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs border-t border-[#3c4043]">
+                        <button type="button" onclick="openOfficialGoogleSignPage()" class="text-[#8ab4f8] hover:underline flex items-center space-x-1.5">
+                            <span>Открыть страницу accounts.google.com</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </button>
+                        <div class="flex items-center space-x-4">
+                            <button type="button" onclick="enableGuestMode()" class="text-[#9aa0a6] hover:text-white transition">
+                                Режим гостя
+                            </button>
+                            <button type="button" onclick="window.navigateTo('dashboard')" class="text-[#9aa0a6] hover:text-white transition">
+                                Вернуться в Класс
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Footer -->
+                <div class="w-full max-w-xl mt-6 px-2 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#9aa0a6] gap-2">
+                    <div class="flex items-center space-x-1 cursor-pointer hover:text-white">
+                        <span>Русский</span>
+                        <i class="fa-solid fa-caret-down text-[10px]"></i>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <a href="https://support.google.com/accounts" target="_blank" class="hover:text-white">Справка</a>
+                        <a href="https://policies.google.com/privacy" target="_blank" class="hover:text-white">Конфиденциальность</a>
+                        <a href="https://policies.google.com/terms" target="_blank" class="hover:text-white">Условия</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: SETTINGS WITH NOTIFICATIONS (REQUIREMENT 8) -->
+            <section id="view-settings" class="hidden p-4 sm:p-8 max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
+                <!-- Header -->
+                <div class="border-b border-google-border dark:border-google-darkBorder pb-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300 flex items-center justify-center shadow-sm">
+                            <i class="fa-solid fa-gear text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Настройки</h1>
+                            <p class="text-xs text-google-gray dark:text-gray-400 mt-0.5">Управление профилем и уведомлениями Google Класс</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 1: Profile Summary -->
+                <div class="bg-white dark:bg-google-darkCard rounded-3xl p-6 border border-google-border dark:border-google-darkBorder shadow-sm space-y-4">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-google-gray dark:text-gray-400">Профиль</h2>
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4">
+                            <div id="settings-user-avatar" class="w-16 h-16 rounded-full text-white text-xl font-bold flex items-center justify-center shadow overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600">
+                                П
+                            </div>
+                            <div>
+                                <h3 id="settings-user-name" class="font-bold text-base text-gray-900 dark:text-gray-100">Пользователь</h3>
+                                <p id="settings-user-email" class="text-xs text-google-gray dark:text-gray-400">user@school.local</p>
+                                <span id="settings-user-role" class="inline-block mt-1.5 px-3 py-0.5 text-[11px] font-semibold rounded-full bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300">
+                                    Студент
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="window.navigateTo('profile-settings')" class="px-4 py-2 border border-google-border dark:border-google-darkBorder hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-semibold rounded-xl transition text-gray-700 dark:text-gray-200">
+                                Настроить профиль
+                            </button>
+                            <button onclick="window.navigateTo('google-auth')" class="px-4 py-2 bg-google-blue hover:bg-google-blueDark text-white text-xs font-semibold rounded-xl shadow transition">
+                                Сменить аккаунт
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Authentic Google Classroom Notifications Replica -->
+                <div class="bg-white dark:bg-google-darkCard rounded-3xl p-6 border border-google-border dark:border-google-darkBorder shadow-sm space-y-6">
+                    <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-4">
+                        <div>
+                            <h2 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                                <i class="fa-solid fa-bell text-google-blue"></i>
+                                <span>Уведомления</span>
+                            </h2>
+                            <p class="text-xs text-google-gray dark:text-gray-400">Получать оповещения по электронной почте и в интерфейсе</p>
+                        </div>
+                        <!-- Master Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="setting-notify-master" onchange="toggleNotificationSetting('master', this.checked)" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-google-blue"></div>
+                        </label>
+                    </div>
+
+                    <div id="settings-notifications-subsections" class="space-y-6">
+                        <!-- Comments Section -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-google-gray dark:text-gray-400">Комментарии</h3>
+                            <div class="space-y-3 pl-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Комментарии к вашим записям</p>
+                                        <p class="text-[11px] text-google-gray">Когда кто-то отвечает на ваше объявление или запись</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-comments-post" onchange="toggleNotificationSetting('commentsPost', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Комментарии, в которых вы упомянуты</p>
+                                        <p class="text-[11px] text-google-gray">Когда вас отмечают в комментариях к курсу</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-comments-mention" onchange="toggleNotificationSetting('commentsMention', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Личные комментарии к заданиям</p>
+                                        <p class="text-[11px] text-google-gray">Сообщения между преподавателем и студентом в задании</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-comments-private" onchange="toggleNotificationSetting('commentsPrivate', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Enrolled Courses Section -->
+                        <div class="space-y-3 pt-3 border-t border-google-border dark:border-google-darkBorder">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-google-gray dark:text-gray-400">Курсы, где вы учитесь (Студент)</h3>
+                            <div class="space-y-3 pl-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Новые задания и материалы преподавателей</p>
+                                        <p class="text-[11px] text-google-gray">Публикация практических работ, тестов и файлов</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-student-assignments" onchange="toggleNotificationSetting('studentAssignments', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Оценки и проверенные работы от преподавателя</p>
+                                        <p class="text-[11px] text-google-gray">Когда учитель выставляет балл или даёт отзыв</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-student-grades" onchange="toggleNotificationSetting('studentGrades', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Напоминания о сроках сдачи заданий</p>
+                                        <p class="text-[11px] text-google-gray">За 24 часа до дедлайна</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-student-reminders" onchange="toggleNotificationSetting('studentReminders', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Teacher Section -->
+                        <div class="space-y-3 pt-3 border-t border-google-border dark:border-google-darkBorder">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-google-gray dark:text-gray-400">Курсы, которые вы ведете (Преподаватель)</h3>
+                            <div class="space-y-3 pl-1">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Сдача и повторная отправка заданий</p>
+                                        <p class="text-[11px] text-google-gray">Когда студент отправляет выполненную работу</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-teacher-submissions" onchange="toggleNotificationSetting('teacherSubmissions', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Поздняя сдача работ студентами</p>
+                                        <p class="text-[11px] text-google-gray">Отправка решений после истечения дедлайна</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-teacher-late" onchange="toggleNotificationSetting('teacherLate', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Приглашения соуправляющих курсов</p>
+                                        <p class="text-[11px] text-google-gray">Когда вас приглашают преподавать курс совместно</p>
+                                    </div>
+                                    <input type="checkbox" id="setting-notify-teacher-invite" onchange="toggleNotificationSetting('teacherInvite', this.checked)" class="w-4 h-4 text-google-blue rounded focus:ring-google-blue dark:bg-gray-800 dark:border-gray-600" checked>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course-Specific Notification Toggles -->
+                        <div class="space-y-3 pt-3 border-t border-google-border dark:border-google-darkBorder">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-google-gray dark:text-gray-400">Уведомления для отдельных курсов</h3>
+                            <div id="settings-courses-notify-list" class="space-y-2 pl-1">
+                                <!-- Populated dynamically with course switches -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+    
+        </main>
+    </div>
+
+    <!-- FULLSCREEN IN-APP MEDIA VIEWER (IMAGE & VIDEO PLAYER WITH DOWNLOAD) -->
+    <div id="modal-media-viewer" class="fixed inset-0 bg-black/95 z-[9999] flex flex-col hidden animate-in fade-in duration-200">
+        <!-- Top Toolbar -->
+        <div class="h-14 px-6 flex items-center justify-between text-white border-b border-white/10 shrink-0 bg-black/60 backdrop-blur-md">
+            <div class="flex items-center space-x-3 min-w-0">
+                <i id="media-viewer-icon" class="fa-solid fa-image text-google-blue text-base"></i>
+                <span id="media-viewer-title" class="font-medium text-sm text-gray-200 truncate max-w-md">Просмотр файла</span>
+            </div>
+
+            <div class="flex items-center space-x-3 shrink-0">
+                <!-- Direct download button -->
+                <a id="media-viewer-download-btn" href="#" download class="px-4 py-1.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white rounded-xl text-xs font-medium flex items-center space-x-2 transition shadow-sm">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Скачать</span>
+                </a>
+                <!-- Close viewer button -->
+                <button id="media-viewer-close-btn" type="button" class="w-9 h-9 rounded-full hover:bg-white/20 active:scale-90 text-white/80 hover:text-white flex items-center justify-center transition" onclick="document.getElementById('modal-media-viewer').classList.add('hidden')">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Media Display Area -->
+        <div id="media-viewer-content" class="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden relative select-none">
+            <!-- Dynamically injected: img / video / iframe -->
+        </div>
+    </div>
+
+    <!-- MODAL: SERVER NETWORK SETTINGS -->
+    <div id="modal-network" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-lg shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-5">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow">
+                    <i class="fa-solid fa-server text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Сетевой сервер и база данных</h3>
+                    <p class="text-xs text-google-gray dark:text-gray-400">Совместная работа в общей базе данных</p>
+                </div>
+            </div>
+
+            <!-- Server Connection Guide Banner -->
+            <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-2xl p-4 text-xs space-y-2">
+                <p class="font-semibold text-google-blue dark:text-google-blueDarkTheme flex items-center space-x-1.5">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Как работать вместе с кентом:</span>
+                </p>
+                <ol class="list-decimal list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                    <li>Хост запускает <strong>start_server.bat</strong> (или <code>python server.py</code>).</li>
+                    <li>В окне консоли появится IP-адрес для кента (например, <code>http://192.168.X.X:8000</code>).</li>
+                    <li>Кент открывает эту ссылку в своём браузере — и оба видят одни и те же курсы и задания!</li>
+                </ol>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Адрес сервера API</label>
+                    <div class="flex items-center space-x-2">
+                        <input id="input-custom-server-url" type="text" placeholder="http://localhost:8000" class="flex-1 border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-google-blue focus:outline-none">
+                        <button id="btn-save-server-url" class="px-4 py-2.5 bg-google-blue text-white rounded-xl font-medium hover:bg-google-blueDark transition">
+                            Применить
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-google-border dark:border-google-darkBorder flex items-center justify-between text-xs">
+                    <span class="text-google-gray">Статус связи:</span>
+                    <span id="network-modal-status" class="font-semibold text-emerald-600">Подключено к серверу</span>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Закрыть</button>
+                <button onclick="syncWithServer(true)" type="button" class="px-5 py-2 text-xs font-medium bg-google-blue text-white rounded-xl shadow transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                    <span>Синхронизировать сейчас</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GOOGLE ACCOUNT AUTH (LOGIN / REGISTER) -->
+    <div id="modal-auth" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-md shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-5">
+            <!-- Header -->
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 rounded-2xl bg-google-blue text-white flex items-center justify-center mx-auto shadow-md">
+                    <i class="fa-solid fa-user-shield text-xl"></i>
+                </div>
+                <h3 id="auth-modal-title" class="text-lg font-bold text-gray-900 dark:text-gray-100">Аккаунт Google Класс</h3>
+                <p id="auth-modal-subtitle" class="text-xs text-google-gray dark:text-gray-400">Выберите профиль или создайте новый</p>
+            </div>
+
+            <!-- Auth Tabs (Вход / Регистрация) -->
+            <div class="flex border-b border-google-border dark:border-google-darkBorder pb-2 text-xs font-semibold">
+                <button id="auth-tab-login" class="flex-1 py-2 text-center text-google-blue border-b-2 border-google-blue transition">Войти</button>
+                <button id="auth-tab-register" class="flex-1 py-2 text-center text-google-gray hover:text-google-text transition">Создать аккаунт</button>
+            </div>
+
+            <!-- LOGIN VIEW -->
+            <div id="auth-view-login" class="space-y-4 text-xs">
+                <!-- Fast account selector -->
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-2">Быстрый выбор пользователя из базы:</label>
+                    <div id="auth-fast-accounts-list" class="space-y-2 max-h-44 overflow-y-auto custom-scrollbar pr-1"></div>
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-google-border dark:border-google-darkBorder"></div>
+                    <span class="flex-shrink mx-3 text-google-gray text-[10px] uppercase">или по email и паролю</span>
+                    <div class="flex-grow border-t border-google-border dark:border-google-darkBorder"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Email</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                            <input id="login-email" type="email" placeholder="vasya@student.edu" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Пароль (если есть)</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                            <input id="login-password" type="password" placeholder="••••••••" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                        </div>
+                    </div>
+                    <button id="btn-submit-login" class="w-full py-2.5 bg-google-blue hover:bg-google-blueDark text-white font-medium rounded-xl shadow transition">
+                        Войти в систему
+                    </button>
+                </div>
+            </div>
+
+            <!-- REGISTER VIEW -->
+            <div id="auth-view-register" class="hidden space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">ФИО / Полное имя <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                        <input id="reg-name" type="text" placeholder="например, Кент Иванов" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Электронный адрес (Email) <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                        <input id="reg-email" type="email" placeholder="kent@school.edu" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Пароль</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                        <input id="reg-password" type="password" placeholder="Придумайте пароль (можно 123)" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Роль в системе</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-id-badge absolute left-3.5 top-1/2 -translate-y-1/2 text-google-gray text-xs pointer-events-none"></i>
+                        <select id="reg-role" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                            <option value="student">Студент (Обучение на курсах)</option>
+                            <option value="teacher">Преподаватель (Создание курсов и оценивание)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- COLOR PALETTE PICKER (FIXED) -->
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1.5">Цветовой профиль аватарки:</label>
+                    <div id="avatar-color-picker" class="flex items-center space-x-2.5 pt-1">
+                        <button type="button" data-grad="from-blue-600 to-indigo-600" class="avatar-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 ring-2 ring-offset-2 ring-google-blue shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-emerald-600 to-teal-600" class="avatar-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-purple-600 to-pink-600" class="avatar-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-amber-600 to-orange-600" class="avatar-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600 to-orange-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-rose-600 to-red-600" class="avatar-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 to-red-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-cyan-600 to-blue-700" class="avatar-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-700 shadow-md transition-transform hover:scale-110"></button>
+                    </div>
+                </div>
+
+                <button id="btn-submit-register" type="button" class="w-full py-2.5 bg-google-blue hover:bg-google-blueDark text-white font-medium rounded-xl shadow transition mt-2">
+                    Зарегистрировать аккаунт
+                </button>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT USER PROFILE -->
+    <div id="modal-edit-profile" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-md shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Настройки профиля</h3>
+            
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">ФИО / Отображаемое имя</label>
+                    <input id="edit-profile-name" type="text" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Роль в системе</label>
+                    <select id="edit-profile-role" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                        <option value="student">Студент</option>
+                        <option value="teacher">Преподаватель (Куратор)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1.5">Цветовая тема аватарки:</label>
+                    <div id="edit-avatar-color-picker" class="flex items-center space-x-2.5 pt-1">
+                        <button type="button" data-grad="from-blue-600 to-indigo-600" class="edit-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-emerald-600 to-teal-600" class="edit-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-purple-600 to-pink-600" class="edit-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-pink-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-amber-600 to-orange-600" class="edit-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-amber-600 to-orange-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-rose-600 to-red-600" class="edit-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 to-red-600 shadow-md transition-transform hover:scale-110"></button>
+                        <button type="button" data-grad="from-cyan-600 to-blue-700" class="edit-color-btn w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-700 shadow-md transition-transform hover:scale-110"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-save-profile" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE COURSE (WITH IMAGE COVER SELECTOR) -->
+    <div id="modal-create-course" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-lg shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-google-blue flex items-center justify-center shadow">
+                    <i class="fa-solid fa-chalkboard text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Создание нового курса</h3>
+            </div>
+            
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Название курса <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fa-solid fa-chalkboard text-google-blue absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+                        <input id="form-course-name" type="text" placeholder="например, Основы Python и Алгоритмы" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Раздел / Группа</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-layer-group text-google-blue absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+                            <input id="form-course-section" type="text" placeholder="Группа CS-21" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Предмет</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-graduation-cap text-google-blue absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+                            <input id="form-course-subject" type="text" placeholder="Информатика" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme / Banner selection -->
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1.5">Выберите красивую обложку курса:</label>
+                    <div id="course-banner-presets" class="grid grid-cols-3 gap-2">
+                        <div data-img="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80" data-grad="from-blue-600 to-indigo-700" class="banner-preset-option ring-2 ring-google-blue rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">IT & Код</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1200&q=80" data-grad="from-purple-600 to-pink-600" class="banner-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">Дизайн</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200&q=80" data-grad="from-emerald-600 to-teal-800" class="banner-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">Математика</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&q=80" data-grad="from-cyan-600 to-blue-800" class="banner-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">AI & Данные</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1200&q=80" data-grad="from-amber-600 to-orange-800" class="banner-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">История</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=1200&q=80" data-grad="from-rose-600 to-pink-800" class="banner-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">Языки</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Или ссылка на своё изображение (URL)</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-image text-google-blue absolute left-3.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"></i>
+                        <input id="form-course-custom-banner" type="text" placeholder="https://images.unsplash.com/..." class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl pl-9 pr-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-submit-create-course" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Создать курс</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: JOIN COURSE -->
+    <div id="modal-join-course" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-md shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-google-green flex items-center justify-center shadow">
+                    <i class="fa-solid fa-key text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Присоединиться к курсу</h3>
+            </div>
+            
+            <p class="text-xs text-google-gray dark:text-gray-400">Введите 5-6 значный код курса, который вам дал преподаватель или кент.</p>
+            
+            <div>
+                <label class="block text-xs font-medium text-google-gray dark:text-gray-300 mb-1">Код курса</label>
+                <input id="form-join-code" type="text" placeholder="например, WEB26" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-3 text-base font-mono uppercase tracking-widest text-center font-bold focus:ring-2 focus:ring-google-blue focus:outline-none">
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-submit-join-course" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Присоединиться</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE ASSIGNMENT -->
+    <div id="modal-create-assignment" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-xl shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                <i class="fa-solid fa-file-pen text-google-blue"></i>
+                <span>Создание учебного задания</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Название задания <span class="text-red-500">*</span></label>
+                    <input id="form-assign-title" type="text" placeholder="Лабораторная работа №2" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Инструкции к выполнению</label>
+                    <textarea id="form-assign-desc" rows="3" placeholder="Подробно опишите требования к решению..." class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Максимальный балл</label>
+                        <input id="form-assign-points" type="number" value="100" min="1" max="1000" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Срок сдачи (Дедлайн)</label>
+                        <input id="form-assign-deadline" type="date" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-submit-assignment" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Опубликовать задание</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: COURSE SETTINGS (REPLACE COVER, NAME, SECTION, SUBJECT, DESC, DELETE) -->
+    <div id="modal-course-settings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-lg shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-google-border dark:border-google-darkBorder">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-google-blue flex items-center justify-center shadow">
+                        <i class="fa-solid fa-sliders text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Настройки курса</h3>
+                        <p class="text-xs text-google-gray dark:text-gray-400">Параметры, обложка и управление курсом</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close-modal p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-google-gray">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Название курса <span class="text-red-500">*</span></label>
+                    <input id="input-course-settings-name" type="text" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Раздел / Группа</label>
+                        <input id="input-course-settings-section" type="text" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Предмет</label>
+                        <input id="input-course-settings-subject" type="text" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Описание курса</label>
+                    <textarea id="input-course-settings-desc" rows="2" placeholder="Опишите цели курса, требования или расписание..." class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none"></textarea>
+                </div>
+
+                <!-- Theme / Banner selection inside course settings -->
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1.5">Обложка и баннер курса:</label>
+                    <div id="course-settings-banner-presets" class="grid grid-cols-3 gap-2">
+                        <div data-img="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&q=80" data-grad="from-blue-600 to-indigo-700" class="course-settings-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-google-blue" style="background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">IT & Код</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1200&q=80" data-grad="from-purple-600 to-pink-600" class="course-settings-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-google-blue" style="background-image: url('https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">Дизайн</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200&q=80" data-grad="from-emerald-600 to-teal-800" class="course-settings-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-google-blue" style="background-image: url('https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">Математика</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&q=80" data-grad="from-cyan-600 to-blue-800" class="course-settings-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-google-blue" style="background-image: url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">AI & Данные</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1200&q=80" data-grad="from-amber-600 to-orange-800" class="course-settings-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-google-blue" style="background-image: url('https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">История</span>
+                        </div>
+                        <div data-img="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=1200&q=80" data-grad="from-rose-600 to-pink-800" class="course-settings-preset-option rounded-xl h-14 bg-cover bg-center cursor-pointer relative overflow-hidden border-2 border-transparent hover:border-google-blue" style="background-image: url('https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300&q=80');">
+                            <span class="absolute bottom-1 left-1 bg-black/60 backdrop-blur-sm text-[9px] text-white px-1.5 py-0.5 rounded">Языки</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Ссылка на баннер (URL):</label>
+                    <input id="input-course-settings-banner-url" type="text" placeholder="https://..." class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Или загрузить баннер с компьютера:</label>
+                    <label class="flex items-center justify-center space-x-2 border-2 border-dashed border-google-border dark:border-google-darkBorder hover:border-google-blue rounded-xl p-3 cursor-pointer transition bg-gray-50 dark:bg-gray-800/40">
+                        <i class="fa-solid fa-cloud-arrow-up text-google-blue text-sm"></i>
+                        <span class="text-xs text-gray-700 dark:text-gray-300">Выбрать файл обложки (с авто-сжатием)</span>
+                        <input type="file" id="input-course-settings-banner-file" accept="image/*" class="hidden">
+                    </label>
+                </div>
+
+                <!-- Danger Zone: Delete Course -->
+                <div class="pt-3 border-t border-red-100 dark:border-red-950 flex items-center justify-between">
+                    <div>
+                        <p class="font-semibold text-red-600 dark:text-red-400">Удалить этот курс</p>
+                        <p class="text-[11px] text-google-gray">Курс и его задания будут безвозвратно удалены</p>
+                    </div>
+                    <button id="btn-delete-current-course" type="button" class="px-3.5 py-2 bg-red-50 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Удалить
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-3 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-save-course-settings" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD CO-TEACHER / MANAGER TO COURSE -->
+    <div id="modal-add-course-teacher" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-md shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-google-blue flex items-center justify-center shadow">
+                    <i class="fa-solid fa-user-plus text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Добавить преподавателя</h3>
+                    <p class="text-xs text-google-gray dark:text-gray-400">Предоставить права соуправления курсом</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Выберите пользователя из системы:</label>
+                    <select id="select-add-course-teacher" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none"></select>
+                </div>
+
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-google-border dark:border-google-darkBorder"></div>
+                    <span class="flex-shrink mx-3 text-google-gray text-[10px] uppercase">или по email</span>
+                    <div class="flex-grow border-t border-google-border dark:border-google-darkBorder"></div>
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Email пользователя:</label>
+                    <input id="input-add-teacher-email" type="email" placeholder="например, kent@school.edu" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+
+                <p class="text-[11px] text-google-gray bg-blue-50 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-100 dark:border-blue-900 leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-google-blue mr-1"></i>
+                    Соуправляющий получит полный доступ к курсу: создание заданий, оценивание работ и публикация записей в ленту.
+                </p>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-confirm-add-teacher" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Назначить преподавателем</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT ASSIGNMENT -->
+    <div id="modal-edit-assignment" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-xl shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                <i class="fa-solid fa-pen-to-square text-google-blue"></i>
+                <span>Редактирование задания</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Название задания <span class="text-red-500">*</span></label>
+                    <input id="form-edit-assign-title" type="text" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Инструкции к выполнению</label>
+                    <textarea id="form-edit-assign-desc" rows="4" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Максимальный балл</label>
+                        <input id="form-edit-assign-points" type="number" min="1" max="1000" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Срок сдачи (Дедлайн)</label>
+                        <input id="form-edit-assign-deadline" type="date" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-submit-edit-assignment" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE CHAT / GROUP / CHANNEL (TELEGRAM STYLE) -->
+    
+    <!-- MODAL: TELEGRAM DESKTOP USER PROFILE (REQUIREMENT 10) -->
+    <div id="modal-telegram-user-profile" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkCard rounded-3xl w-full max-w-sm shadow-2xl border border-google-border dark:border-google-darkBorder overflow-hidden">
+            <!-- Top Header Cover -->
+            <div class="h-28 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-700 relative p-4 flex justify-end items-start text-white">
+                <button onclick="closeTelegramUserProfile()" class="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <!-- Profile Body -->
+            <div class="px-6 pb-6 pt-0 relative space-y-4">
+                <div class="flex items-end justify-between -mt-12 mb-2">
+                    <div id="tg-profile-avatar-box" class="w-24 h-24 rounded-full ring-4 ring-white dark:ring-google-darkCard shadow-xl overflow-hidden bg-gradient-to-tr from-sky-500 to-blue-600 text-white font-bold text-2xl flex items-center justify-center">
+                        П
+                    </div>
+                    <span id="tg-profile-role-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950 text-google-blue dark:text-blue-300 shadow-sm">
+                        Студент
+                    </span>
+                </div>
+
+                <div>
+                    <h3 id="tg-profile-name" class="text-lg font-bold text-gray-900 dark:text-gray-100">Имя Фамилия</h3>
+                    <p id="tg-profile-status" class="text-xs text-emerald-500 font-medium flex items-center space-x-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>в сети</span>
+                    </p>
+                </div>
+
+                <div class="space-y-3 pt-2 border-t border-google-border dark:border-google-darkBorder text-xs">
+                    <div class="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
+                        <i class="fa-solid fa-envelope text-google-gray w-4 text-center"></i>
+                        <span id="tg-profile-email" class="truncate flex-1 font-mono">user@school.local</span>
+                        <button onclick="copyTgProfileEmail()" title="Копировать" class="p-1 hover:text-sky-500"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button id="tg-profile-btn-send-msg" class="w-full py-2.5 bg-sky-500 hover:bg-sky-600 active:scale-95 text-white font-semibold text-xs rounded-2xl shadow flex items-center justify-center space-x-2 transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Написать сообщение</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TELEGRAM CHAT INFO & EDIT (REQUIREMENT 10) -->
+    <div id="modal-chat-info-edit" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkCard rounded-3xl w-full max-w-md shadow-2xl border border-google-border dark:border-google-darkBorder overflow-hidden space-y-4 p-6 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-3">
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-info text-sky-500"></i>
+                    <span id="chat-info-modal-title">Информация о чате</span>
+                </h3>
+                <button onclick="closeChatInfoModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-google-gray flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto custom-scrollbar space-y-4 flex-1 pr-1">
+                <!-- Chat Card -->
+                <div class="text-center space-y-2">
+                    <div id="chat-info-avatar-box" class="w-20 h-20 rounded-full mx-auto shadow-md overflow-hidden bg-gradient-to-tr from-sky-500 to-blue-600 text-white font-bold text-2xl flex items-center justify-center">
+                        💬
+                    </div>
+                    <h4 id="chat-info-name" class="font-bold text-base text-gray-900 dark:text-gray-100">Название чата</h4>
+                    <p id="chat-info-type-badge" class="text-xs text-google-gray">Группа • 3 участника</p>
+                    <p id="chat-info-desc" class="text-xs text-gray-600 dark:text-gray-300 italic px-4"></p>
+                </div>
+
+                <!-- Admin Edit Box (Shown only if admin/creator) -->
+                <div id="chat-info-admin-edit-box" class="hidden border border-google-border dark:border-google-darkBorder rounded-2xl p-4 space-y-3 bg-gray-50/50 dark:bg-gray-800/40 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-pen-to-square text-sky-500"></i>
+                            <span>Редактировать группу/канал</span>
+                        </span>
+                        <button type="button" onclick="saveChatInfoChanges()" class="px-3 py-1 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600 transition">
+                            Сохранить
+                        </button>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray mb-1">Название</label>
+                        <input type="text" id="edit-chat-name-input" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium text-google-gray mb-1">Описание</label>
+                        <textarea rows="2" id="edit-chat-desc-input" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Members List -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h5 class="text-xs font-bold uppercase tracking-wider text-google-gray dark:text-gray-400">Участники (<span id="chat-info-members-count">0</span>)</h5>
+                        <button id="btn-chat-add-member" onclick="openChatAddMembersModal()" class="hidden text-xs text-sky-500 font-semibold hover:underline flex items-center space-x-1">
+                            <i class="fa-solid fa-user-plus text-xs"></i>
+                            <span>Добавить</span>
+                        </button>
+                    </div>
+                    <div id="chat-info-members-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-google-border dark:border-google-darkBorder flex justify-end space-x-2">
+                <button id="btn-chat-leave-delete" onclick="handleChatLeaveOrDelete()" class="px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition">
+                    Удалить чат
+                </button>
+                <button onclick="closeChatInfoModal()" class="px-4 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 rounded-xl transition">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD MEMBERS TO CHAT (REQUIREMENT 10) -->
+    <div id="modal-chat-add-members" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkCard rounded-3xl w-full max-w-sm shadow-2xl border border-google-border dark:border-google-darkBorder p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-google-border dark:border-google-darkBorder pb-2">
+                <h4 class="font-bold text-sm text-gray-900 dark:text-gray-100">Добавить участников</h4>
+                <button onclick="document.getElementById('modal-chat-add-members').classList.add('hidden')" class="text-google-gray hover:text-gray-900">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="chat-add-members-available-list" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar text-xs"></div>
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button onclick="document.getElementById('modal-chat-add-members').classList.add('hidden')" class="px-3.5 py-1.5 rounded-xl text-xs text-google-gray hover:bg-gray-100 dark:hover:bg-gray-800">Отмена</button>
+                <button onclick="submitAddChatMembers()" class="px-4 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-semibold shadow">Добавить</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-create-chat" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-md shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-sky-100 dark:bg-sky-950 text-sky-500 flex items-center justify-center shadow">
+                    <i class="fa-solid fa-paper-plane text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Новый чат</h3>
+                    <p class="text-xs text-google-gray dark:text-gray-400">Личный диалог, группа или канал в Telegram стиле</p>
+                </div>
+            </div>
+
+            <!-- Chat Type Selector -->
+            <div class="grid grid-cols-3 gap-2 text-xs font-medium">
+                <button type="button" data-chat-type="direct" class="create-chat-type-btn active p-2.5 rounded-2xl border-2 border-sky-500 bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 flex flex-col items-center space-y-1 transition">
+                    <i class="fa-solid fa-user text-base"></i>
+                    <span>Личный</span>
+                </button>
+                <button type="button" data-chat-type="group" class="create-chat-type-btn p-2.5 rounded-2xl border-2 border-google-border dark:border-google-darkBorder text-google-gray hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-col items-center space-y-1 transition">
+                    <i class="fa-solid fa-users text-base"></i>
+                    <span>Группа</span>
+                </button>
+                <button type="button" data-chat-type="channel" class="create-chat-type-btn p-2.5 rounded-2xl border-2 border-google-border dark:border-google-darkBorder text-google-gray hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-col items-center space-y-1 transition">
+                    <i class="fa-solid fa-bullhorn text-base"></i>
+                    <span>Канал</span>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <!-- Group / Channel Title (shown for group/channel) -->
+                <div id="field-chat-name-box" class="hidden">
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Название группы / канала <span class="text-red-500">*</span></label>
+                    <input id="input-create-chat-name" type="text" placeholder="например, Обсуждение ДЗ CS-21" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+
+                <!-- Channel Description (optional) -->
+                <div id="field-chat-desc-box" class="hidden">
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Описание (необязательно)</label>
+                    <input id="input-create-chat-desc" type="text" placeholder="О чём этот канал..." class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+
+                <!-- Select users / members -->
+                <div>
+                    <label id="label-chat-members" class="block font-medium text-google-gray dark:text-gray-300 mb-1.5">Выберите собеседника:</label>
+                    <div id="create-chat-members-list" class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar border border-google-border dark:border-google-darkBorder rounded-2xl p-2 bg-gray-50/50 dark:bg-gray-800/40"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-submit-create-chat" type="button" class="px-5 py-2 text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white rounded-xl shadow transition">Создать чат</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT ANNOUNCEMENT -->
+    <div id="modal-edit-announcement" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden animate-in fade-in duration-200">
+        <div class="bg-white dark:bg-google-darkSurface rounded-3xl w-full max-w-lg shadow-2xl border border-google-border dark:border-google-darkBorder p-6 space-y-4">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                <i class="fa-solid fa-pen-to-square text-google-blue"></i>
+                <span>Редактировать запись в ленте</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-google-gray dark:text-gray-300 mb-1">Текст записи</label>
+                    <textarea id="form-edit-announcement-body" rows="4" class="w-full border border-google-border dark:border-google-darkBorder dark:bg-gray-800 dark:text-gray-100 rounded-xl p-3 text-xs focus:ring-2 focus:ring-google-blue focus:outline-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2 border-t border-google-border dark:border-google-darkBorder">
+                <button type="button" class="btn-close-modal px-4 py-2 text-xs font-medium text-google-gray hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition">Отмена</button>
+                <button id="btn-submit-edit-announcement" type="button" class="px-5 py-2 text-xs font-semibold bg-google-blue hover:bg-google-blueDark text-white rounded-xl shadow transition">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL IN-APP TOAST NOTIFICATION -->
+    <div id="app-toast" class="fixed bottom-6 right-6 bg-gray-900/95 dark:bg-gray-100/95 text-white dark:text-gray-900 px-4 py-3 rounded-2xl shadow-2xl text-xs font-medium flex items-center space-x-2.5 transition-all duration-300 opacity-0 pointer-events-none z-50 transform translate-y-3">
+        <span id="toast-icon" class="material-symbols-outlined text-green-400 dark:text-green-600 text-lg">check_circle</span>
+        <span id="toast-text">Успешно</span>
+    </div>
+<!-- Modular JavaScript Engine (Item 4) -->
+    <script src="js/state.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/courses.js"></script>
+    <script src="js/assignments.js"></script>
+    <script src="js/chats.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
