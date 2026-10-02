@@ -571,12 +571,14 @@
                         <div id="grades-stats-badge" class="px-3 py-1 bg-green-100 dark:bg-green-950 text-google-green font-medium text-xs rounded-full"></div>
                     </div>
 
-                    <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl shadow-sm overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[750px]">
+                    <div class="bg-white dark:bg-google-darkSurface border border-google-border dark:border-google-darkBorder rounded-3xl shadow-sm overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-full">
                             <thead>
-                                <tr class="bg-gray-50 dark:bg-gray-800/70 border-b border-google-border dark:border-google-darkBorder text-xs text-google-gray dark:text-gray-300 font-semibold uppercase">
-                                    <th class="p-4 w-72 sticky left-0 bg-gray-50 dark:bg-gray-800 z-10">Студент</th>
-                                    <th id="grades-assignments-headers" class="contents"></th>
+                                <tr id="grades-assignments-headers-row" class="bg-gray-50 dark:bg-gray-800/70 border-b border-google-border dark:border-google-darkBorder text-xs text-google-gray dark:text-gray-300 font-semibold uppercase">
+                                    <th class="p-3.5 w-64 min-w-[240px] max-w-[260px] sticky left-0 z-20 bg-gray-50 dark:bg-gray-800 shadow-[1px_0_0_0_rgba(0,0,0,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]">
+                                        Студент
+                                    </th>
+                                    <!-- Dynamic assignment columns inserted here -->
                                 </tr>
                             </thead>
                             <tbody id="grades-table-body" class="divide-y divide-google-border dark:divide-google-darkBorder text-sm"></tbody>
@@ -2053,11 +2055,11 @@
         <span id="toast-text">Успешно</span>
     </div>
 <!-- Modular JavaScript Engine (Item 4) -->
-    <script src="js/state.js?v=2.0.20"></script>
-    <script src="js/notifications.js?v=2.0.20"></script>
-    <script src="js/auth.js?v=2.0.20"></script>
-    <script src="js/courses.js?v=2.0.20"></script>
-    <script src="js/assignments.js?v=2.0.20"></script>
-    <script src="js/app.js?v=2.0.20"></script>
+    <script src="js/state.js?v=2.0.21"></script>
+    <script src="js/notifications.js?v=2.0.21"></script>
+    <script src="js/auth.js?v=2.0.21"></script>
+    <script src="js/courses.js?v=2.0.21"></script>
+    <script src="js/assignments.js?v=2.0.21"></script>
+    <script src="js/app.js?v=2.0.21"></script>
 </body>
 </html>

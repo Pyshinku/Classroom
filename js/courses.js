@@ -883,7 +883,7 @@ window.excludeStudentFromCourse = async function(courseId, studentId) {
 };
 
 function renderGradesTab(course) {
-    const headerRow = document.getElementById('grades-assignments-headers');
+    const headerRow = document.getElementById('grades-assignments-headers-row') || document.getElementById('grades-assignments-headers');
     const tableBody = document.getElementById('grades-table-body');
     const badgeStats = document.getElementById('grades-stats-badge');
 
@@ -893,12 +893,29 @@ function renderGradesTab(course) {
     if (badgeStats) badgeStats.textContent = `Заданий: ${assigns.length} • Студентов: ${students.length}`;
 
     if (headerRow) {
-        headerRow.innerHTML = assigns.map(a => `
-            <th class="p-3 text-center border-l border-google-border dark:border-google-darkBorder min-w-[140px]">
-                <div class="truncate font-semibold text-gray-800 dark:text-gray-200 text-xs">${a.title}</div>
-                <span class="text-[10px] text-google-gray font-normal">из ${a.points} б.</span>
-            </th>
-        `).join('');
+        // If headerRow is the <tr> itself
+        if (headerRow.tagName === 'TR') {
+            const studentTh = `
+                <th class="p-3.5 w-64 min-w-[240px] max-w-[260px] sticky left-0 z-20 bg-gray-50 dark:bg-gray-800 shadow-[1px_0_0_0_rgba(0,0,0,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)]">
+                    Студент
+                </th>
+            `;
+            const assignThs = assigns.map(a => `
+                <th class="p-3 text-center border-l border-google-border dark:border-google-darkBorder w-36 min-w-[144px] max-w-[160px] bg-gray-50 dark:bg-gray-800" title="${escapeHtml(a.title)}">
+                    <div class="truncate font-semibold text-gray-800 dark:text-gray-200 text-xs">${escapeHtml(a.title)}</div>
+                    <span class="text-[10px] text-google-gray font-normal block mt-0.5">из ${a.points || 100} б.</span>
+                </th>
+            `).join('');
+            headerRow.innerHTML = studentTh + assignThs;
+        } else {
+            // Fallback if headerRow is the element inside tr
+            headerRow.innerHTML = assigns.map(a => `
+                <th class="p-3 text-center border-l border-google-border dark:border-google-darkBorder w-36 min-w-[144px] max-w-[160px] bg-gray-50 dark:bg-gray-800" title="${escapeHtml(a.title)}">
+                    <div class="truncate font-semibold text-gray-800 dark:text-gray-200 text-xs">${escapeHtml(a.title)}</div>
+                    <span class="text-[10px] text-google-gray font-normal block mt-0.5">из ${a.points || 100} б.</span>
+                </th>
+            `).join('');
+        }
     }
 
     if (tableBody) {
@@ -910,21 +927,30 @@ function renderGradesTab(course) {
         tableBody.innerHTML = students.map(st => {
             const cells = assigns.map(a => {
                 const submission = a.submissions && a.submissions[st.id];
-                const gradeVal = submission && submission.grade !== undefined ? submission.grade : '';
+                const gradeVal = submission && submission.grade !== undefined && submission.grade !== null ? submission.grade : '';
+                const isSub = Boolean(submission && submission.submittedAt);
                 return `
-                    <td class="p-3 text-center border-l border-google-border dark:border-google-darkBorder">
-                        <input type="number" value="${gradeVal}" min="0" max="${a.points}" ${course.isArchived ? 'disabled' : ''} onchange="saveStudentGrade('${a.id}', '${st.id}', this.value)" class="w-16 text-center py-1 rounded-lg border border-google-border dark:border-google-darkBorder bg-gray-50 dark:bg-gray-800 text-xs font-bold focus:ring-2 focus:ring-google-blue ${course.isArchived ? 'opacity-60 cursor-not-allowed' : ''}">
+                    <td class="p-2.5 text-center border-l border-google-border dark:border-google-darkBorder w-36 min-w-[144px] max-w-[160px]">
+                        <div class="flex flex-col items-center justify-center space-y-1">
+                            <input type="number" value="${gradeVal}" min="0" max="${a.points || 100}" placeholder="—" ${course.isArchived ? 'disabled' : ''} onchange="saveStudentGrade('${a.id}', '${st.id}', this.value)" class="w-16 text-center py-1 rounded-xl border border-google-border dark:border-google-darkBorder bg-gray-50 dark:bg-gray-800/80 text-xs font-bold focus:ring-2 focus:ring-google-blue ${course.isArchived ? 'opacity-60 cursor-not-allowed' : ''}">
+                            <span class="text-[10px] ${isSub ? 'text-google-green font-medium' : 'text-google-gray'}">${isSub ? 'Сдано' : 'Не сдано'}</span>
+                        </div>
                     </td>
                 `;
             }).join('');
 
             return `
-                <tr class="border-b border-google-border dark:border-google-darkBorder">
-                    <td class="p-3 text-xs font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                        <span class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-[10px]">
-                            ${st.avatar || 'С'}
-                        </span>
-                        <span>${st.name}</span>
+                <tr class="border-b border-google-border dark:border-google-darkBorder hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition">
+                    <td class="p-3.5 text-xs font-semibold text-gray-900 dark:text-gray-100 sticky left-0 z-10 bg-white dark:bg-google-darkSurface shadow-[1px_0_0_0_rgba(0,0,0,0.06)] dark:shadow-[1px_0_0_0_rgba(255,255,255,0.06)] w-64 min-w-[240px] max-w-[260px]">
+                        <div class="flex items-center space-x-2.5 truncate">
+                            <span class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-xs shrink-0">
+                                ${st.avatar || 'С'}
+                            </span>
+                            <div class="truncate">
+                                <p class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">${escapeHtml(st.name)}</p>
+                                <p class="text-[10px] text-google-gray truncate font-normal">${escapeHtml(st.email || 'Студент')}</p>
+                            </div>
+                        </div>
                     </td>
                     ${cells}
                 </tr>
@@ -932,24 +958,6 @@ function renderGradesTab(course) {
         }).join('');
     }
 }
-
-window.saveStudentGrade = async function(assignId, studentId, grade) {
-    const assign = (appState.assignments || []).find(a => a.id === assignId);
-    if (!assign) return;
-    const course = (appState.courses || []).find(c => c.id === assign.courseId);
-    if (course && course.isArchived) {
-        triggerToast('Курс заархивирован: выставление оценок заблокировано');
-        return;
-    }
-    if (!assign.submissions) assign.submissions = {};
-    if (!assign.submissions[studentId]) {
-        assign.submissions[studentId] = { answer: '', link: '', attachments: [], submittedAt: 'Без сдачи' };
-    }
-    assign.submissions[studentId].grade = Number(grade);
-    persistState();
-    await sendServerAction('/api/assignments/grade', { assignmentId: assignId, studentId, grade: Number(grade) });
-    triggerToast('Оценка сохранена');
-};
 
 window.joinCourseDirectly = async function(code) {
     code = code.trim().toUpperCase();
